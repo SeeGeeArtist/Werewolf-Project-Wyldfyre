@@ -1,0 +1,143 @@
+/*
+    WTAGarou - Quadruped carry gear (v0.3.0)
+
+    The idea: a Garou stashes a saddlebag inside their normal backpack while in
+    Homid, then before shifting to Lupus or Hispo they pull it out and wear it.
+    Their hands are gone once they are a wolf, but their gear does not have to
+    be.
+
+    WolfMod's Base.WolfSaddlebag is `Type = Container` with no BodyLocation, so
+    it is a bag a TAMED wolf holds rather than something a player wears. These
+    are wearable clothing containers on the WTAGarou_Saddlebag body location
+    registered in media/registries.lua.
+*/
+
+module WTAGarou
+{
+    /*
+        The full pack. Roughly a large hiking bag's worth of space, at a hefty
+        weight cost, because it is strapped to an animal.
+    */
+    item WolfSaddlebag
+    {
+        DisplayName = Wolf Saddlebag,
+        DisplayCategory = Bag,
+        ItemType = base:container,
+        Weight = 1.2,
+        Capacity = 22,
+        WeightReduction = 60,
+        RunSpeedModifier = 0.94,
+        Icon = WolfSaddlebag,
+        BodyLocation = wtagarou:saddlebag,
+        CanBeEquipped = wtagarou:saddlebag,
+        /*
+            No ClothingItem on purpose. A ClothingItem needs a matching XML in
+            media/clothing/clothingItems/ pointing at a model rigged to the
+            wearer's skeleton, and there is no wolf-rigged bag mesh yet. Until
+            one exists the bag works fully as a container but is invisible on
+            the body. Same reason WolfMod ships its saddlebag with
+            WorldStaticModel = NONE.
+        */
+        WorldStaticModel = NONE,
+        OpenSound = PutItemInBag,
+        CloseSound = PutItemInBag,
+        PutInSound = PutItemInBag,
+        Tags = wtagarou:quadrupedbag,
+        /* 0.4.22: retired container (see WTAGarou.Carry in Definitions). Kept
+           so saves that hold one still load; Obsolete hides it from spawn
+           lists and the item picker. */
+        Obsolete = TRUE,
+    }
+
+    /*
+        A lighter pair of panniers. Less room, no real speed penalty, and light
+        enough that a Lupus is not instantly overloaded by its own bag.
+    */
+    item WolfSaddlebag_Small
+    {
+        DisplayName = Wolf Panniers,
+        DisplayCategory = Bag,
+        ItemType = base:container,
+        Weight = 0.6,
+        Capacity = 12,
+        WeightReduction = 50,
+        RunSpeedModifier = 0.98,
+        Icon = WolfSaddlebag,
+        BodyLocation = wtagarou:saddlebag,
+        CanBeEquipped = wtagarou:saddlebag,
+        WorldStaticModel = NONE,
+        OpenSound = PutItemInBag,
+        CloseSound = PutItemInBag,
+        PutInSound = PutItemInBag,
+        Tags = wtagarou:quadrupedbag,
+        Obsolete = TRUE,  /* 0.4.22: retired, see above */
+    }
+
+    /*
+        Craftable from leather and a strap. Requires no tools a wolf could not
+        have set up beforehand in Homid form.
+    */
+    /* CraftWolfSaddlebag is temporarily disabled. The supplied 0.4.0 log
+       proves timedAction=Sewing is not a registered TimedActionScript in
+       this game build, and that invalid recipe prevents world loading.
+       Restore crafting only after validating a replacement in game.
+       The item definitions and starting-item grant remain available. */
+
+    /*
+        Hidden zero-weight stand-in that is ATTACHED (not worn) to a wolf's
+        WTAGarou_Saddlebags location whenever the wolf wears any container.
+        It has no inventory and is never given to the player.
+    */
+    item WolfSaddlebagVisual
+    {
+        DisplayName = Saddlebags,
+        DisplayCategory = Hidden,
+        ItemType = base:normal,
+        Weight = 0,
+        Hidden = true,
+        Icon = WolfSaddlebag,
+        StaticModel = WTAGarou_Saddlebags,
+        WorldStaticModel = WTAGarou_Saddlebags,
+    }
+
+    /*
+        Skinned harness carrier: attached at WTAGarou_Harness by
+        client/WTAGarouVisual.lua while a wolf has any hotbar or
+        secondary-hand item OR worn container. Hidden, weightless, never given
+        to the player. StaticModel is the native item lookup property; Java
+        replaces the carrier's loaded model with the skinned model-script asset.
+    */
+    item WolfHarnessVisual
+    {
+        DisplayName = Harness,
+        DisplayCategory = Hidden,
+        ItemType = base:normal,
+        Weight = 0,
+        Hidden = true,
+        Icon = WolfSaddlebag,
+        StaticModel = WTAGarou_Harness,
+        WorldStaticModel = WTAGarou_Harness,
+    }
+    item WolfSaddlebagVisualCamo
+    {
+        DisplayName = Saddlebags,
+        DisplayCategory = Hidden,
+        ItemType = base:normal,
+        Weight = 0,
+        Hidden = true,
+        Icon = WolfSaddlebag,
+        StaticModel = WTAGarou_Saddlebags_Camo,
+        WorldStaticModel = WTAGarou_Saddlebags_Camo,
+    }
+    item WolfHarnessVisualCamo
+    {
+        DisplayName = Harness,
+        DisplayCategory = Hidden,
+        ItemType = base:normal,
+        Weight = 0,
+        Hidden = true,
+        Icon = WolfSaddlebag,
+        StaticModel = WTAGarou_Harness_Camo,
+        WorldStaticModel = WTAGarou_Harness_Camo,
+    }
+}

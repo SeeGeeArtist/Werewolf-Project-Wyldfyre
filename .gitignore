@@ -1,0 +1,3 @@
+*.psd
+java/build/
+__pycache__/

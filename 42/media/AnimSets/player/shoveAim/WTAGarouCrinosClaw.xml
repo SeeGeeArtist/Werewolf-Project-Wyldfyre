@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Presentation-only. Preserve ShoveAnim and a single native collision.
+     The 0.25 contact point belongs to the vanilla 1HDefault swing.
+     0.4.69: only the attack button (ctrl+click / RT) plays this swing;
+     WTAGarouCrinosSwing is decided per press by Java CrinosSwingRuntime,
+     so the spacebar shove keeps the vanilla shove node and audio.
+     0.4.70: copy of player/shove/WTAGarouCrinosClaw.xml for the shoveAim
+     state. IsoPlayer runs the attack-button shove through "shoveAim"
+     (isShovingWhileAiming = aiming && shoving; Oct 18 anim recorder:
+     state player/shoveAim, node ShoveAim, clip Bob_AimShove), so a node
+     that only lives in player/shove never played for ctrl+click. -->
+<animNode>
+    <m_Name>WTAGarouCrinosClaw</m_Name>
+    <m_AnimName>Bob_Attack1Hand01_Hit</m_AnimName>
+    <m_Priority>4</m_Priority>
+    <m_ConditionPriority>1</m_ConditionPriority>
+    <m_deferredBoneAxis>Y</m_deferredBoneAxis>
+    <m_Looped>false</m_Looped>
+    <m_SyncTrackingEnabled>false</m_SyncTrackingEnabled>
+    <m_EarlyTransitionOut>true</m_EarlyTransitionOut>
+    <m_SpeedScale>1.25</m_SpeedScale>
+    <m_BlendTime>0.20</m_BlendTime>
+    <m_Conditions>
+        <m_Name>WTAGarouCrinosUnarmed</m_Name>
+        <m_Type>BOOL</m_Type>
+        <m_BoolValue>true</m_BoolValue>
+    </m_Conditions>
+    <m_Conditions>
+        <m_Name>WTAGarouCrinosSwing</m_Name>
+        <m_Type>BOOL</m_Type>
+        <m_BoolValue>true</m_BoolValue>
+    </m_Conditions>
+    <m_Conditions>
+        <m_Name>AimFloorAnim</m_Name>
+        <m_Type>BOOL</m_Type>
+        <m_BoolValue>false</m_BoolValue>
+    </m_Conditions>
+    <m_Events>
+        <m_EventName>AttackCollisionCheck</m_EventName>
+        <m_TimePc>0.25</m_TimePc>
+        <m_ParameterValue></m_ParameterValue>
+    </m_Events>
+    <m_Events>
+        <m_EventName>ShoveAnim</m_EventName>
+        <m_Time>Start</m_Time>
+        <m_ParameterValue>TRUE</m_ParameterValue>
+    </m_Events>
+    <m_Events>
+        <m_EventName>ShoveAnim</m_EventName>
+        <m_Time>End</m_Time>
+        <m_ParameterValue>FALSE</m_ParameterValue>
+    </m_Events>
+    <m_Events>
+        <m_EventName>BlockMovement</m_EventName>
+        <m_TimePc>0.1</m_TimePc>
+        <m_ParameterValue>TRUE</m_ParameterValue>
+    </m_Events>
+    <m_Events>
+        <m_EventName>BlockMovement</m_EventName>
+        <m_TimePc>0.5</m_TimePc>
+        <m_ParameterValue>FALSE</m_ParameterValue>
+    </m_Events>
+    <m_Events>
+        <m_EventName>BlockMovement</m_EventName>
+        <m_Time>End</m_Time>
+        <m_ParameterValue>FALSE</m_ParameterValue>
+    </m_Events>
+    <m_Events>
+        <m_EventName>SetMeleeDelay</m_EventName>
+        <m_Time>End</m_Time>
+        <m_ParameterValue>8</m_ParameterValue>
+    </m_Events>
+    <m_SubStateBoneWeights><boneName>Bip01_Spine1</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_Neck</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_BackPack</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_Prop1</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_Prop2</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights>
+        <boneName>Bip01_Spine</boneName><weight>0.40</weight>
+        <includeDescendants>false</includeDescendants>
+    </m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01</boneName><weight>0.20</weight></m_SubStateBoneWeights>
+</animNode>

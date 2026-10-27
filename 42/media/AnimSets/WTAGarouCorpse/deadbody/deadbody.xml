@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animNode>
+    <m_Name>deadbody</m_Name>
+    <m_AnimName>Wolf_dead</m_AnimName>
+    <m_deferredBoneAxis>Y</m_deferredBoneAxis>
+    <m_SyncTrackingEnabled>false</m_SyncTrackingEnabled>
+    <m_BlendTime>0.0</m_BlendTime>
+</animNode>

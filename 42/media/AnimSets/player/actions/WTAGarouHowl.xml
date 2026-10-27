@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 0.4.71: authored Glabro/Crinos howl on the human (Bob) rig. Selected by
+     the action name the howl sets (BaseAction.setActionAnim writes the
+     PerformingAction string), so it only plays while WTAGarouHowlAction
+     chose "WTAGarouHowl", which Lua does only when Java confirms the clip
+     Bob_WTAGarouHowl is loaded (WTAGarouJava.hasHumanClip). Otherwise the
+     howl stays on the vanilla Drink node with the arm mask.
+     Clip: media/anims_X/Bob/Bob_WTAGarouHowl.glb (or .fbx/.X), authored on
+     the vanilla Bob skeleton, looped; file name = clip name.
+     Upper-body sub-state weights like the other action nodes: the legs keep
+     the gait layer, so the howl also works at a walk. -->
+<animNode>
+    <m_Name>WTAGarouHowl</m_Name>
+    <m_AnimName>Bob_WTAGarouHowl</m_AnimName>
+    <m_Looped>true</m_Looped>
+    <m_BlendTime>0.25</m_BlendTime>
+    <m_BlendOutTime>0.25</m_BlendOutTime>
+    <m_useDeferredMovement>false</m_useDeferredMovement>
+    <m_Conditions>
+        <m_Name>PerformingAction</m_Name>
+        <m_Type>STRING</m_Type>
+        <m_StringValue>WTAGarouHowl</m_StringValue>
+    </m_Conditions>
+    <m_SubStateBoneWeights><boneName>Bip01_Spine1</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_Neck</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_BackPack</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_Prop1</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01_Prop2</boneName></m_SubStateBoneWeights>
+    <m_SubStateBoneWeights>
+        <boneName>Bip01_Spine</boneName><weight>0.40</weight>
+        <includeDescendants>false</includeDescendants>
+    </m_SubStateBoneWeights>
+    <m_SubStateBoneWeights><boneName>Bip01</boneName><weight>0.20</weight></m_SubStateBoneWeights>
+</animNode>

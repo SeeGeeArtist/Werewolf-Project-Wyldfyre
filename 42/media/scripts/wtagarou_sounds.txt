@@ -1,0 +1,404 @@
+module WTAGarou
+{
+    /*
+        WTAGarou sound bank (v0.4.11, 0.4.67 additions below).
+
+        Wolf_Mod_*.ogg are WolfMod's animal sounds shipped in
+        common/media/sound (Freylith, granted). Every WTAGarou_*.ogg is the
+        mod author's own voice and foley since 0.4.84 (recorded 2026-10-24,
+        cut list in tools/audio/build_set.py). distanceMax here is the FMOD audible range for players;
+        the zombie-facing world sound radius is set separately by the Java
+        StealthRuntime (WTAGarou.Voice / WTAGarou.Stealth).
+
+        0.4.88: the author masters the WTAGarou_*.ogg files himself, so
+        every own clip plays at volume 1.00 and the Lua/Java cap is 1.0
+        (was 0.75 since 0.4.40) - no more turning the Crinos down in game
+        logic. Only the Crinos footsteps sit lower (0.45). The Sound
+        Effects slider still applies (WTAGarou.Audio).
+    */
+    sound WTAGarou_Howl
+    {
+        category = Player,
+        loop = true,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Howl.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 8,
+            distanceMax = 75,
+            reverbFactor = 0.15,
+            reverbMaxRange = 25.0,
+        }
+    }
+
+    /*
+        Shift sounds (0.4.18, author-supplied). All one-shot (loop = false);
+        client/WTAGarouShiftSounds.lua stops the previous handle of the same
+        cue before playing a new one so nothing piles up.
+    */
+    /* Any shift channel starts. 0.4.67: this is a quiet cue, so remote
+       players only hear it close by (the Crinos completion roar keeps its
+       long range below). 0.4.84: an 8 s sustained rustle bed (the author's
+       leaf/box crunch takes layered over the procedural bed); the client
+       fades it out in 200 ms when the channel ends. */
+    sound WTAGarou_FormShift
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_formshift.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 2,
+            distanceMax = 12,
+        }
+    }
+
+    /* 0.4.67: plays once when a shift channel completes (any form), at a
+       lowered volume. Lua applies a further gain on top of the slider. */
+    sound WTAGarou_FormShiftEnd
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_formshift_02.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 2,
+            distanceMax = 12,
+        }
+    }
+
+    /* The Crinos shift completes (channelled or Rage-forced). */
+    sound WTAGarou_CrinosShift
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Shift.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 35,
+        }
+    }
+
+    /* 0.4.67: plays once when a channel INTO Crinos starts (replaces the
+       quiet FormShift cue for that channel). 0.4.69: well under the
+       completion roar above (0.80 -> 0.50) and a shorter reach; the shift
+       itself is the loud moment. 0.4.70: 0.30, it layers under the
+       completion roar and was still too present. 0.4.84: it is now the
+       Crinos channel VOICE (own 1.8 s strained growl, played over the
+       rustle bed for any channel into or out of Crinos), so 0.50 again.
+       0.4.86: the full 1.8 s take again - only the channel INTO Crinos is
+       1 s; the client fades the voice on channel end. */
+    sound WTAGarou_CrinosShiftStart
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Shift-Start.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 25,
+        }
+    }
+
+    /* The forced-Crinos countdown starts (replaces the growl there).
+       0.4.85: heavy Crinos breathing deep down a well - fades in over
+       4 s, out to silence by 12 s (the countdown is 10 s minus resists;
+       0.4.86: 12.5 s, the tail rings under the shift). */
+    sound WTAGarou_CrinosShiftTimer
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Shift-Timer.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 30,
+        }
+    }
+
+    /* Crouched Crinos shout (the countdown used this until 0.4.18). */
+    sound WTAGarou_CrinosGrowl
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Growl.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 30,
+        }
+    }
+
+    /* Standing Crinos shout: the Q key in Crinos. 0.4.67: author-supplied
+       variants (0.4.87: three, the author's call); the engine picks a random
+       clip per play (also on the remote copies that the PlaySound packet
+       triggers). */
+    sound WTAGarou_CrinosRoar
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Roar_Bark.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 10,
+            distanceMax = 60,
+        }
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Roar_Bark_02.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 10,
+            distanceMax = 60,
+        }
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Roar_Bark_03.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 10,
+            distanceMax = 60,
+        }
+    }
+
+    /* 0.4.67: the author's Crinos footstep files, played unprocessed (no
+       EQ, pitch or gain stage in code) under every Crinos footstep, on top
+       of the surface step the human bank already plays. 0.4.70: 0.80 ->
+       0.55 (Oct 18: "great, but their volume could be lowered"). Played locally on each
+       client by the Java footstep patch (remote Crinos players animate
+       locally, so their steps trigger it too); not network-sent. */
+    sound WTAGarou_CrinosStep
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Fstep_01.ogg,
+            volume = 0.45,
+            pitch = 1.00,
+            distanceMin = 3,
+            distanceMax = 20,
+        }
+        clip
+        {
+            file = media/sound/WTAGarou_Crinos_Fstep_02.ogg,
+            volume = 0.45,
+            pitch = 1.00,
+            distanceMin = 3,
+            distanceMax = 20,
+        }
+    }
+
+    /* Wolf paws; the Java footstep patch picks this over the human bank. */
+    sound WTAGarou_WolfStep
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/Wolf_Mod_Step_01.ogg,
+            volume = 0.45,
+            pitch = 1.00,
+            distanceMin = 2,
+            distanceMax = 14,
+        }
+        clip
+        {
+            file = media/sound/Wolf_Mod_Step_02.ogg,
+            volume = 0.45,
+            pitch = 1.00,
+            distanceMin = 2,
+            distanceMax = 14,
+        }
+        clip
+        {
+            file = media/sound/Wolf_Mod_Step_03.ogg,
+            volume = 0.45,
+            pitch = 1.00,
+            distanceMin = 2,
+            distanceMax = 14,
+        }
+    }
+
+    sound WTAGarou_WolfBark
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/Wolf_Mod_Bark_01.ogg,
+            volume = 0.90,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 40,
+        }
+    }
+
+    /* Hispo Q shout / crouched Q (0.4.18, author-supplied). Lupus keeps the
+       WolfMod bark/growl below. */
+    sound WTAGarou_HispoBark
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Hispo_Bark_01.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 50,
+        }
+        clip
+        {
+            file = media/sound/WTAGarou_Hispo_Bark_02.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 50,
+        }
+        clip
+        {
+            file = media/sound/WTAGarou_Hispo_Bark_03.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 50,
+        }
+    }
+
+    sound WTAGarou_HispoGrowl
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/WTAGarou_Hispo_Growl_01.ogg,
+            volume = 1.00,
+            pitch = 1.00,
+            distanceMin = 3,
+            distanceMax = 22,
+        }
+    }
+
+    sound WTAGarou_WolfGrowl
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/Wolf_Mod_Growl_01.ogg,
+            volume = 0.80,
+            pitch = 1.00,
+            distanceMin = 3,
+            distanceMax = 18,
+        }
+    }
+
+    sound WTAGarou_WolfAttack
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/Wolf_Mod_Attack_01.ogg,
+            volume = 0.85,
+            pitch = 1.00,
+            distanceMin = 4,
+            distanceMax = 25,
+        }
+    }
+
+    sound WTAGarou_WolfFallOver
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/Wolf_Mod_FallOver_01.ogg,
+            volume = 0.80,
+            pitch = 1.00,
+            distanceMin = 3,
+            distanceMax = 20,
+        }
+    }
+
+    sound WTAGarou_WolfSniff
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/Wolf_Mod_Sniff_01.ogg,
+            volume = 0.60,
+            pitch = 1.00,
+            distanceMin = 2,
+            distanceMax = 10,
+        }
+    }
+
+    sound WTAGarou_WolfDeath
+    {
+        category = Player,
+        loop = false,
+        is3D = true,
+
+        clip
+        {
+            file = media/sound/Wolf_Mod_Death_01.ogg,
+            volume = 0.90,
+            pitch = 1.00,
+            distanceMin = 5,
+            distanceMax = 35,
+        }
+    }
+}

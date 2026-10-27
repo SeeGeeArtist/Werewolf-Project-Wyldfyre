@@ -1,0 +1,266 @@
+/*
+    WTAGarou - Per-form character models (v0.3.0)
+
+    v0.4.1: SCALE IS NOW APPLIED BY THE ZOMBIEBUDDY JAVA DRAW HOOK.
+    Script scale is normalized to 1 to avoid two independent scale factors.
+    v0.4.4: the direct Java body prototype loads WTAGarou_Lupus for both
+    wolf forms, with their separate approved Java render scale factors.
+    Glabro/Crinos keep the vanilla mesh, skin and attachment definitions.
+    WolfRuntime translates player animation-track requests to wolf clips,
+    retaining the gameplay graph. This prototype still needs visual testing.
+
+    ASSET COLLISION NOTE
+    Everything here is prefixed WTAGarou_. WolfMod already defines
+    `model Wolf` and `animationsMesh Wolf` in module Base, and two mods
+    defining the same name in the same module is a conflict. The wolf mesh,
+    texture and animation folder were renamed for the same reason.
+*/
+
+module Base
+{
+    /* Static authored head/neck. Human rig/animations and GLB unchanged.
+       0.4.53: preserve the .52 upright fit, then reverse facing about head-local
+       X (the fitted up axis). Body-space axes != Bip01_Head-local axes. The author's
+       Blender quaternion (-.5,.5,-.5,.5 XYZW) maps this head to the previous
+       placeholder; the two mounts compose that with the old 90-degree mount.
+       Java selects the mount using the engine's actual self-inversion flag. */
+    model WTAGarou_CrinosHead
+    {
+        mesh = WTAGarou/WTAGarou_CrinosHead,
+        texture = Body/WTAGarou_Wolf_Timber,
+        shader = basicEffect,
+        static = true,
+        scale = 0.6,
+        attachment mount
+        {
+            offset = 0.0 0.0 0.0,
+            /* Inverted mode: inverse of the effective facing-corrected fit. */
+            rotate = 0.0 0.0 90.0,
+        }
+        attachment mount_direct
+        {
+            offset = 0.0 0.0 0.0,
+            /* Engine applies self attachments directly (B42 reference default). */
+            rotate = 180.0 0.0 -90.0,
+        }
+    }
+    /*
+        The wolf rig for Lupus and Hispo.
+
+        Existing WolfMod assets, already bundled in common/media. The actual
+        mesh DOES have many Bip01 bones, including Bip01_Jaw. Embedded clip
+        names are normalized to filenames so variants do not overwrite walk/run.
+        See docs/WOLF_COMBAT_044.md for the direct Java adapter and limitations.
+    */
+    animationsMesh WTAGarou_Wolf
+    {
+        meshFile = Skinned/WTAGarou_Wolf,
+        animationDirectory = WTAGarouWolf,
+        animationPrefix = Wolf_,
+    }
+
+    /*
+        GLABRO - "just a bigger human".
+        Reuses the vanilla body mesh so all existing clothing, animations and
+        attachment points keep working. Only the scale and the fur texture
+        change.
+    */
+    model WTAGarou_Glabro
+    {
+        mesh = Skinned/MaleBody,
+        animationsMesh = Human,
+        static = false,
+        scale = 1.0,
+    }
+
+    model WTAGarou_Glabro_Female
+    {
+        mesh = Skinned/FemaleBody,
+        animationsMesh = Human,
+        static = false,
+        scale = 1.0,
+    }
+
+    /*
+        CRINOS - the war form. Same trick as Glabro, pushed much further.
+        Clothing will stretch oddly at this scale; WTAGarouClothing.lua is what
+        strips the pieces that cannot survive the change.
+    */
+    model WTAGarou_Crinos
+    {
+        mesh = Skinned/MaleBody,
+        animationsMesh = Human,
+        static = false,
+        scale = 1.0,
+    }
+
+    model WTAGarou_Crinos_Female
+    {
+        mesh = Skinned/FemaleBody,
+        animationsMesh = Human,
+        static = false,
+        scale = 1.0,
+    }
+
+    /*
+        LUPUS - a wolf at natural size.
+        `shader = animalEffect` is what the vanilla animals and WolfMod both
+        use for quadruped meshes.
+    */
+    model WTAGarou_Lupus
+    {
+        mesh = Skinned/WTAGarou_Wolf,
+        texture = Body/WTAGarou_Wolf_Timber,
+        animationsMesh = WTAGarou_Wolf,
+        shader = animalEffect,
+        static = false,
+
+        /*
+            Verified in the bundled wolf GLB. Held gear is hidden by the
+            current direct-body prototype; mouth-carry rendering is deferred.
+        */
+        attachment mouth
+        {
+            offset = 0.0 0.0 0.35,
+            rotate = 0.0 0.0 0.0,
+            scale = 0.8,
+            bone = Bip01_Jaw,
+        }
+        attachment WTAGarou_Saddlebags
+        {
+            offset = 0.0 0.08 0.02,
+            rotate = 90.0 0.0 180.0,
+            scale = 1.0,
+            bone = Bip01_Spine1,
+        }
+    }
+
+    /*
+        HISPO - the dire-wolf form. Same wolf mesh, scaled up.
+    */
+    model WTAGarou_Hispo
+    {
+        mesh = Skinned/WTAGarou_Wolf,
+        texture = Body/WTAGarou_Wolf_Timber,
+        animationsMesh = WTAGarou_Wolf,
+        shader = animalEffect,
+        static = false,
+        scale = 1.0,
+
+        attachment mouth
+        {
+            offset = 0.0 0.0 0.35,
+            rotate = 0.0 0.0 0.0,
+            scale = 0.9,
+            bone = Bip01_Jaw,
+        }
+        attachment WTAGarou_Saddlebags
+        {
+            offset = 0.0 0.08 0.02,
+            rotate = 90.0 0.0 180.0,
+            scale = 1.1,
+            bone = Bip01_Spine1,
+        }
+    }
+
+    /*
+        EXPERIMENTAL (0.4.11): worn containers on a wolf render as this static
+        saddlebag mesh. Toggle with WTAGarou.EnableSaddlebagVisual.
+
+        0.4.89: WTAGarou_Saddlebags is now our own GLB + textures from
+        tools/build_saddlebags.py (the 0.4.11-0.4.88 builds used the Horse
+        Mod's HorseSaddlebags.fbx, which may not be redistributed). The
+        generator keeps the donor's measured footprint (0.48 x 0.24 x 0.16 m,
+        Y up, top edge at y = 0, Z along the spine), so scale 0.6, the
+        rotate 90 0 180 below and WTAGarou.Saddlebag's offsets still place it
+        the same way; the glTF loads like WTAGarou_CrinosHead (static).
+
+        0.4.13 PLACEMENT: the engine looks the PARENT attachment up on the
+        body's model script, which stays MaleBody/FemaleBody under the direct
+        Java wolf (the WTAGarou_Saddlebags attachments on WTAGarou_Lupus/Hispo
+        above are therefore never consulted). With no parent attachment and no
+        parent bone the bag sat at the character origin: the black slab under
+        the wolf in the 0.4.12 playtest. WolfRuntime now gives the instance
+        parentBoneName = Bip01_Spine2 (WolfRuntime.SADDLEBAG_BONE; the
+        mid-back bone, Spine -> Spine1 -> Spine2 -> Spine3 -> Neck), so the
+        bone transform is applied and this SELF attachment (same id) supplies
+        the offset/rotation in that bone's space. Spine axes (measured from
+        the wolf GLB): local X sideways, local Y forward along the spine,
+        local Z UP. 0.4.19 raised the bag from z -0.05 to +0.02 after the
+        0.4.18 playtest ("oriented correctly, a little low"); 0.4.20 playtest
+        still "a bit low" - raise z further here (try 0.06). No Java rebuild.
+        The 0.4.13-0.4.19 text above said Spine1; the Java constant has been
+        Spine2 since 0.4.13. This is the ONLY attachment consulted for the
+        bag (the two on WTAGarou_Lupus/Hispo are dead while the body script
+        stays MaleBody/FemaleBody).
+    */
+    model WTAGarou_Saddlebags
+    {
+        mesh = WTAGarou/WTAGarou_Saddlebags,
+        texture = WTAGarou/WTAGarou_Saddlebags,
+        static = true,
+        scale = 0.6,
+
+        attachment WTAGarou_Saddlebags
+        {
+            offset = 0.0 0.08 0.02,
+            rotate = 90.0 0.0 180.0,
+        }
+        attachment world
+        {
+            offset = 0.0 0.0 0.0,
+            rotate = 90.0 0.0 0.0,
+        }
+    }
+    model WTAGarou_Saddlebags_Camo
+    {
+        mesh = WTAGarou/WTAGarou_Saddlebags,
+        texture = WTAGarou/WTAGarou_Saddlebags_Camo,
+        static = true,
+        scale = 0.6,
+
+        attachment WTAGarou_Saddlebags
+        {
+            offset = 0.0 0.08 0.02,
+            rotate = 90.0 0.0 180.0,
+        }
+        attachment world
+        {
+            offset = 0.0 0.0 0.0,
+            rotate = 90.0 0.0 0.0,
+        }
+    }
+    /*
+        Authored skinned harness. Shares the wolf animation player, with its
+        own skinning data/bind poses. No Spine2 attachment or rigid correction.
+        Both variants use the same GLB and TEXCOORD_0; Black keeps its old PNG.
+    */
+    model WTAGarou_Harness
+    {
+        mesh = WTAGarou/WTAGarou_Harness,
+        texture = WTAGarou/WTAGarou_Harness,
+        shader = basicEffect,
+        scale = 1.0,
+        static = false,
+        animationsMesh = WTAGarou_Wolf,
+        attachment world
+        {
+            offset = 0.0 0.0 0.0,
+            rotate = 0.0 0.0 0.0,
+        }
+    }
+    model WTAGarou_Harness_Camo
+    {
+        mesh = WTAGarou/WTAGarou_Harness,
+        texture = WTAGarou/WTAGarou_Harness_Camo,
+        shader = basicEffect,
+        scale = 1.0,
+        static = false,
+        animationsMesh = WTAGarou_Wolf,
+        attachment world
+        {
+            offset = 0.0 0.0 0.0,
+            rotate = 0.0 0.0 0.0,
+        }
+    }
+}

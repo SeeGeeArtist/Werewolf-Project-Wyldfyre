@@ -1,0 +1,44 @@
+{
+  "UI_trait_Garou": "Werewolf",
+  "UI_trait_GarouDesc": "You are Garou: a werewolf, kin to the wolf. <LINE> Rage builds as you suffer and as you kill, <LINE> and it buys you four other shapes: Near-Human, <LINE> the Berzerker war form, the Near-Wolf, and the Wolf. <LINE> Beast forms heal fast, purge the Knox virus from a bite, <LINE> carry in their jaws and cannot work a trigger or a tool. <LINE> Silver burns you, and a silver wound stops healing <LINE> until the burn is gone. <LINE> Fast Healer, Hearty Appetite and Cat's Eyes are included. <LINE> Pick your origin, coat and auspice on the Werewolf Startup panel.",
+
+  "UI_optionscreen_binding_WTAGarou": "Werewolf",
+  "UI_optionscreen_binding_WTAGarou_ToggleRagePanel": "Toggle Rage panel",
+
+  "IGUI_health_WTAGarou_LodgedSilverBullet": "Lodged silver-tip bullet",
+  "IGUI_health_WTAGarou_LodgedSilverShards": "Lodged silver fragments",
+  "IGUI_health_WTAGarou_SilverBurn": "Silver Burn",
+  "ContextMenu_WTAGarou_RemoveSilverFragments": "Remove Silver Fragments",
+
+  "IGUI_WTAGarou_Title": "Rage",
+  "IGUI_WTAGarou_TransformSubmenu": "Shift Form",
+  "IGUI_WTAGarou_Howl": "Howl",
+  "IGUI_WTAGarou_Changing": "Changing to %1...",
+  "IGUI_WTAGarou_Howling": "Howling...",
+  "IGUI_WTAGarou_CancelHint": "move or press Esc to stop",
+
+  "IGUI_WTAGarou_Deny_invalid_form": "That is not a form.",
+  "IGUI_WTAGarou_Deny_already_in_form": "You are already in that form.",
+  "IGUI_WTAGarou_Deny_cooldown": "Your body is still settling.",
+  "IGUI_WTAGarou_Deny_not_enough_rage": "Not enough Rage.",
+  "IGUI_WTAGarou_Deny_not_enough_rage_howl": "Not enough Rage to howl.",
+  "IGUI_WTAGarou_Deny_not_a_garou": "You are not a werewolf.",
+  "IGUI_WTAGarou_Deny_no_reservation": "The change slipped away from you.",
+  "IGUI_WTAGarou_Deny_reservation_expired": "You held the change too long.",
+  "IGUI_WTAGarou_Deny_shift_interrupted": "The change broke apart.",
+  "IGUI_WTAGarou_Deny_frenzy_forced": "The Rage takes you!",
+  "IGUI_WTAGarou_Deny_no_hands": "You have no hands.",
+  "IGUI_WTAGarou_Deny_no_offhand": "You cannot hold anything in an off-hand.",
+  "IGUI_WTAGarou_Deny_too_heavy_for_jaws": "Too heavy to carry in your jaws.",
+  "IGUI_WTAGarou_Deny_no_trigger_finger": "You cannot work a trigger like this.",
+
+  "IGUI_WTAGarou_Form_Homid": "Homid",
+  "IGUI_WTAGarou_Form_Glabro": "Glabro",
+  "IGUI_WTAGarou_Form_Crinos": "Crinos",
+  "IGUI_WTAGarou_Form_Hispo": "Hispo",
+  "IGUI_WTAGarou_Form_Lupus": "Lupus",
+
+  "ItemName_WTAGarou.WolfSaddlebag": "Wolf Saddlebag",
+  "ItemName_WTAGarou.WolfSaddlebag_Small": "Wolf Panniers",
+  "Recipe_CraftWolfSaddlebag": "Sew Wolf Panniers"
+}

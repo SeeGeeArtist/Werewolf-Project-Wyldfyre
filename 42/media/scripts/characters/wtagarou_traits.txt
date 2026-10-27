@@ -1,0 +1,89 @@
+/*
+    WTAGarou - Character traits (v0.4.19)
+
+    0.4.19: XPBoosts (same syntax as vanilla Build 42 traits, see
+    CharacterTraitDefinitionScript.XPBoosts) add starting skill levels on top
+    of the vanilla baseline. Every character already starts at Fitness 5 and
+    Strength 5 without any trait; the Garou adds +2 Fitness, Strength, Sneak,
+    Nimble and Lightfoot and +3 Sprinting and Tracking.
+
+    Build 42 defines selectable traits in script files rather than through
+    B41's TraitFactory.addTrait(). The CharacterTrait id below must already be
+    registered by media/registries.lua, which the game loads first.
+
+    The three pieces that have to agree:
+      1. media/registries.lua                 CharacterTrait.register("wtagarou:garou")
+      2. this file                            character_trait_definition wtagarou:garou
+      3. media/lua/shared/Translate/EN/UI.json   UI_trait_Garou / UI_trait_GarouDesc
+
+    The trait icon is resolved by id, with the namespace stripped:
+      media/ui/Traits/trait_garou.png   (18x18)
+
+    ---------------------------------------------------------------------------
+    COST: SOLVED. Do not "fix" the sign again.
+
+    Two live tests, both with the same GrantedTraits line:
+
+        Cost =   4  ->  listed as  -4,  points to spend = 4
+        Cost = -12  ->  listed as +12,  points to spend = 20
+
+    Both fit one formula exactly:
+
+        listed label    = -Cost
+        points to spend = 8 - Cost
+
+    The 8 is not ours. Unemployed / Custom Occupation grants 8 free trait
+    points in Build 42; that is the baseline the pool starts from. So with
+    Cost = 4 the pool correctly showed 4 -- eight points granted, four spent on
+    Garou. It was never awarding points. The vanilla convention holds:
+
+        POSITIVE Cost = beneficial trait that SPENDS points.
+
+    The label showing -4 is the UI printing the POOL DELTA, not the Cost field,
+    which is why it looked inverted. The one earlier test where Cost = -4 still
+    displayed -4 was a stale file; every test since has tracked the formula.
+
+    GrantedTraits are DISPLAYED with their own -Cost labels but are NOT charged:
+    Hearty Appetite showed +4 and Fast Healer showed -6, and neither moved the
+    pool. That is why 12 + 4 - 6 never summed to anything meaningful.
+
+    ---------------------------------------------------------------------------
+    Cost is now 8: the entire Unemployed budget. Being a werewolf should mean
+    taking real negative traits to afford anything else. Raise it past 8 if you
+    want it to bite (the pool goes negative and forces detriments); drop it to
+    4-6 if you would rather leave room for a normal build.
+
+    Fair-value note: the free Fast Healer is worth 6 and the free Hearty
+    Appetite is worth -4, so the granted bundle is +2 of uncharged value on top
+    of the Garou package itself.
+
+    0.4.22: Cat's Eyes (base:nightvision, CharacterTrait.NIGHT_VISION in
+    42.20.2) is granted too - "Garou don't need flashlights". Granted traits
+    are not charged, so the Cost stays 8. Whether the vanilla trait brightens
+    a closed room enough is for the playtest; it is the only night-vision
+    lever the engine exposes without Java.
+
+    ---------------------------------------------------------------------------
+    Hearty Appetite is a NEGATIVE vanilla trait (-4): the Garou gets hungry
+    faster. Thematically right, mechanically a drawback, not a perk.
+
+    Fast Healer and Hearty Appetite appearing in the chosen-traits list is also
+    the mod's liveness check -- if they vanish, the game has stopped reading
+    this file and no Cost edit will take.
+*/
+
+module Base
+{
+    character_trait_definition wtagarou:garou
+    {
+        IsProfessionTrait = false,
+        DisabledInMultiplayer = false,
+        CharacterTrait = wtagarou:garou,
+        Cost = 8,
+        UIName = UI_trait_Garou,
+        UIDescription = UI_trait_GarouDesc,
+        MutuallyExclusiveTraits = base:weak;base:feeble;base:obese;base:unfit;base:asthmatic;base:illiterate;base:slowhealer;base:lighteater;base:very underweight,
+        GrantedTraits = base:fasthealer;base:heartyappetite;base:nightvision,
+        XPBoosts = Fitness=2;Strength=2;Sneak=2;Nimble=2;Lightfoot=2;Sprinting=3;Tracking=3,
+    }
+}

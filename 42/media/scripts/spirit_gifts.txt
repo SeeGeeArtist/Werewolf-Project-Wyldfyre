@@ -1,0 +1,33 @@
+module WTAGarou {
+    imports { Base }
+
+    /* Spirit Gifts - v0.2 stub items. Read them to permanently boost a skill.
+       Full effect scripting lands with the Umbra pass. */
+
+    item GiftRatSpirit {
+        DisplayName = Gift of the Rat Spirit,
+        ItemType = base:literature,
+        Icon = Book,
+        Weight = 0.2,
+        NumberOfPages = 8,
+        Tags = GiftBook,
+    }
+
+    item GiftSpiderSpirit {
+        DisplayName = Gift of the Spider Spirit,
+        ItemType = base:literature,
+        Icon = Book,
+        Weight = 0.2,
+        NumberOfPages = 8,
+        Tags = GiftBook,
+    }
+
+    item GiftWolfSpirit {
+        DisplayName = Gift of the Wolf Spirit,
+        ItemType = base:literature,
+        Icon = Book,
+        Weight = 0.2,
+        NumberOfPages = 8,
+        Tags = GiftBook,
+    }
+}

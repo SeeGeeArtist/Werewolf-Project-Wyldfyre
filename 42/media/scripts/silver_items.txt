@@ -1,0 +1,280 @@
+module WTAGarou {
+    imports { Base }
+
+    /* 0.4.79: SilverKnife / SilverMachete were Build 41 definitions
+       (StaticModel / WorldStaticModel, no WeaponSprite, no sounds, no
+       animations); equipping either on 42.20 took the host client down
+       (Oct 21 playtest, twice). They are now line-for-line copies of the
+       vanilla HuntingKnife / Machete (42.20 items_weapons_*.txt) with the
+       forged model + icon, a silver name and the silver tag. The normal
+       path to a silver weapon is still "Forge Silver onto Weapon", which
+       coats the vanilla item; these two exist for hunters and the debug
+       spawn. */
+    item SilverKnife {
+        DisplayName = Silver Knife,
+        DisplayCategory = Weapon,
+        ItemType = base:weapon,
+        Weight = 1,
+        Icon = HuntingKnife_Forged,
+        AimingMod = 0.8,
+        AttachmentType = Knife,
+        BreakSound = HuntingKnifeBreak,
+        Categories = SmallBlade,
+        CloseKillMove = Jaw_Stab,
+        ConditionLowerChanceOneIn = 15,
+        ConditionMax = 10,
+        CritDmgMultiplier = 3,
+        CriticalChance = 50,
+        DamageCategory = Slash,
+        DamageMakeHole = TRUE,
+        DoorDamage = 1,
+        DoorHitSound = HuntingKnifeHit,
+        DropSound = HuntingKnifeDrop,
+        HitFloorSound = HuntingKnifeHit,
+        HitSound = HuntingKnifeHit,
+        IdleAnim = Idle_Weapon2,
+        ImpactSound = HuntingKnifeHit,
+        IsAimedHandWeapon = TRUE,
+        KnockBackOnNoDeath = FALSE,
+        KnockdownMod = 0,
+        MaxDamage = 1.2,
+        MaxHitCount = 1,
+        MaxRange = 0.9,
+        MetalValue = 30,
+        MinAngle = 0.65,
+        MinDamage = 0.6,
+        MinRange = 0.61,
+        MinimumSwingTime = 2,
+        PushBackMod = 0.01,
+        RunAnim = Run_Weapon2,
+        SplatBloodOnNoDeath = TRUE,
+        SplatNumber = 4,
+        SubCategory = Stab,
+        SwingAmountBeforeImpact = 0.02,
+        SwingAnim = Stab,
+        SwingSound = HuntingKnifeSwing,
+        SwingTime = 2,
+        TreeDamage = 0,
+        WeaponLength = 0.25,
+        WeaponSprite = HuntingKnifeForged,
+        Tags = CutPlant;SharpKnife;ButcherAnimal;Sharpenable;KillAnimal;WTAGarouSilver,
+        Sharpness = 1.0,
+        OnBreak = OnBreak.HuntingKnife,
+    }
+
+    item SilverMachete {
+        DisplayName = Silver Machete,
+        DisplayCategory = Weapon,
+        ItemType = base:weapon,
+        Weight = 2,
+        Icon = Machete_Forged,
+        AttachmentType = Sword,
+        BaseSpeed = 1,
+        BreakSound = MacheteBreak,
+        Categories = LongBlade,
+        ConditionLowerChanceOneIn = 25,
+        ConditionMax = 13,
+        CritDmgMultiplier = 5,
+        CriticalChance = 20,
+        DamageCategory = Slash,
+        DamageMakeHole = TRUE,
+        DoorDamage = 10,
+        DoorHitSound = MacheteHit,
+        DropSound = MacheteDrop,
+        HitFloorSound = MacheteHit,
+        HitSound = MacheteHit,
+        ImpactSound = MacheteHit,
+        KnockBackOnNoDeath = FALSE,
+        KnockdownMod = 2,
+        MaxDamage = 3,
+        MaxHitCount = 2,
+        MaxRange = 1.23,
+        MinAngle = 0.7,
+        MinDamage = 2,
+        MinRange = 0.61,
+        MinimumSwingTime = 4,
+        PushBackMod = 0.3,
+        SplatBloodOnNoDeath = TRUE,
+        SplatNumber = 2,
+        SubCategory = Swinging,
+        SwingAmountBeforeImpact = 0.02,
+        SwingAnim = Bat,
+        SwingSound = MacheteSwing,
+        SwingTime = 4,
+        TreeDamage = 10,
+        WeaponLength = 0.3,
+        WeaponSprite = MacheteForged,
+        Tags = IgnoreZombieDensity;CutPlant;SharpKnife;ButcherAnimal;Sharpenable;WTAGarouSilver,
+        Sharpness = 1.0,
+        OnBreak = OnBreak.Machete,
+    }
+
+    /* 0.4.63: a Silver Fragments filed down for per-round silvering. 20 uses:
+       3 per shotgun shell (6 shells a fragment), 2 per bullet (10 a fragment),
+       the same yields the six/ten-round batch recipes gave. */
+    item SilverFilings {
+        DisplayName = Silver Filings,
+        DisplayCategory = Material,
+        ItemType = base:drainable,
+        Weight = 0.05,
+        UseDelta = 0.05,
+        UseWhileEquipped = FALSE,
+        ConsolidateOption = ContextMenu_Merge,
+        Icon = SilverScrap,
+        WorldStaticModel = SilverScrap,
+        MetalValue = 2,
+        Tags = HasMetal,
+    }
+
+    /* 0.4.58 (Wits W1): one silver-tipped variant per vanilla calibre.
+       Separate item types so vanilla reload never loads them; the mod's
+       own loader (client/WTAGarouSilverLoad.lua) does. Icons and world
+       models borrow the vanilla ammunition's. */
+    item SilverShotgunShells {
+        DisplayName = Silver Shotgun Shells,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.06,
+        Count = 6,
+        Icon = ShotgunAmmo,
+        MetalValue = 2,
+        WorldStaticModel = ShotGunShells,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item SilverBullets9mm {
+        DisplayName = Silver-Tipped 9mm Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.02,
+        Count = 15,
+        Icon = PistolAmmo,
+        MetalValue = 2,
+        WorldStaticModel = 9mmRounds,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item SilverBullets45 {
+        DisplayName = Silver-Tipped .45 Auto Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.025,
+        Count = 8,
+        Icon = PistolAmmo,
+        MetalValue = 2,
+        WorldStaticModel = 9mmRounds,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item SilverBullets44 {
+        DisplayName = Silver-Tipped .44 Magnum Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.03,
+        Count = 6,
+        Icon = PistolAmmo,
+        MetalValue = 2,
+        WorldStaticModel = 9mmRounds,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item SilverBullets38 {
+        DisplayName = Silver-Tipped .38 Special Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.015,
+        Count = 6,
+        Icon = PistolAmmo,
+        MetalValue = 2,
+        WorldStaticModel = 38SpecialBullets,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item SilverBullets357 {
+        DisplayName = Silver-Tipped .357 Magnum Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.035,
+        Count = 6,
+        Icon = PistolAmmo,
+        MetalValue = 2,
+        WorldStaticModel = 38SpecialBullets,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item Silver3030Bullets {
+        DisplayName = Silver-Tipped .30-30 Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.035,
+        Count = 10,
+        Icon = RifleAmmo308loose,
+        MetalValue = 2,
+        WorldStaticModel = RifleAmmo,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item Silver308Bullets {
+        DisplayName = Silver-Tipped .308 Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.04,
+        Count = 10,
+        Icon = RifleAmmo308loose,
+        MetalValue = 2,
+        WorldStaticModel = RifleAmmo,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    item Silver556Bullets {
+        DisplayName = Silver-Tipped 5.56mm Round,
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.035,
+        Count = 10,
+        Icon = RifleAmmo308loose,
+        MetalValue = 2,
+        WorldStaticModel = RifleAmmo,
+        Tags = Ammo;wtagarou:silverammo,
+    }
+
+    /* 0.4.62: silver nitrate is a FLUID now (silver_fluids.txt), not an item:
+       it lives in whatever glass vessel it was mixed in. */
+
+    /* 0.4.81: a vanilla Smoke Bomb repacked with ten uses of Silver Filings
+       (recipe WTAGarou_PackSilverSmokeBomb). Line-for-line the 42.20
+       Base.SmokeBomb (items_traps.txt) so the engine throws, lands and
+       smokes it the same way; server/WTAGarouSilverSmoke.lua turns the
+       smoke squares into silver dust for Garou. */
+    item SilverSmokeBomb {
+        DisplayName = Silver Smoke Bomb,
+        DisplayCategory = Explosives,
+        ItemType = base:weapon,
+        Weight = 1.6,
+        Icon = Smokebomb,
+        CanBePlaced = TRUE,
+        ExplosionDuration = 10,
+        ExplosionSound = SmokeBombLoop,
+        MaxDamage = 0,
+        MaxHitCount = 0,
+        MaxRange = 10,
+        MinDamage = 0,
+        MinimumSwingTime = 1.5,
+        NoiseDuration = 10,
+        NoiseRange = 10,
+        PhysicsObject = ExplosiveTrap,
+        PlacedSprite = constructedobjects_01_40,
+        SmokeRange = 5,
+        SwingAmountBeforeImpact = 0.1,
+        SwingAnim = Throw,
+        SwingSound = SmokeBombThrow,
+        SwingTime = 1.5,
+        Tooltip = Tooltip_Trap,
+        TriggerExplosionTimer = 50,
+        UseSelf = TRUE,
+        WeaponSprite = SmokeBomb,
+        WorldStaticModel = SmokeBomb,
+        ConditionMax = 1,
+        Tags = WTAGarouSilverSmoke,
+    }
+}

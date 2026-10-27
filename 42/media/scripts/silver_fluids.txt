@@ -1,0 +1,83 @@
+module WTAGarou {
+    imports { Base }
+
+    /* 0.4.62: silver nitrate is a fluid, like bleach, not a jar item.
+       Silver nitrate (AgNO3) is what you get when nitric acid eats silver;
+       in water it is a clear, caustic, poisonous solution that stains skin
+       black. The mod keeps it in the vessel it was mixed in (jar, beer or
+       whiskey bottle, beaker, drinking glass...) and lets the vanilla fluid
+       system move it: pour it between containers, drink it (don't), or use
+       0.2 L per weapon coat.
+
+       Modded fluid names are allowed (FluidDefinitionScript: anything that
+       is not a vanilla FluidType becomes FluidType.Modded under its script
+       name, so recipes refer to WTAGarou_SilverNitrateRaw / WTAGarou_SilverNitrate).
+       Poison follows Bleach: Deadly past 0.2 L, 10% dilution per litre of
+       other fluid. BlendWhiteList: the two nitrates mix only with each
+       other (the raw mix turns into the finished solution inside the same
+       vessel while it is heated, see NitrateHeatPatch), never with water. */
+
+    fluid WTAGarou_SilverNitrateRaw
+    {
+        ColorReference  = Gainsboro,
+        DisplayName     = Fluid_Name_WTAGarou_SilverNitrateRaw,
+
+        Categories
+        {
+            Hazardous,
+        }
+
+        Properties
+        {
+            thirstChange            = -10,
+        }
+
+        Poison
+        {
+            maxEffect         = Severe,
+            minAmount         = 0.2,
+            diluteRatio       = 0.1,
+        }
+
+        BlendWhiteList
+        {
+            whitelist = true,
+            fluids
+            {
+                WTAGarou_SilverNitrate,
+            }
+        }
+    }
+
+    fluid WTAGarou_SilverNitrate
+    {
+        ColorReference  = Silver,
+        DisplayName     = Fluid_Name_WTAGarou_SilverNitrate,
+
+        Categories
+        {
+            Hazardous,
+        }
+
+        Properties
+        {
+            thirstChange            = -10,
+        }
+
+        Poison
+        {
+            maxEffect         = Deadly,
+            minAmount         = 0.2,
+            diluteRatio       = 0.1,
+        }
+
+        BlendWhiteList
+        {
+            whitelist = true,
+            fluids
+            {
+                WTAGarou_SilverNitrateRaw,
+            }
+        }
+    }
+}

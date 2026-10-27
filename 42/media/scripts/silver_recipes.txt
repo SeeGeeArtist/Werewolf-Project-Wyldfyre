@@ -1,0 +1,377 @@
+module WTAGarou {
+    imports { Base }
+
+    /* 0.4.58 (Wits W2): silver for people who have to fight werewolves.
+       Silver comes from jewellery and silverware (vanilla tags), never
+       from nowhere. Ratios are deliberately kinder than the vanilla 20:1
+       jewellery recipe so a hunter can arm up from what zombies wear. */
+
+    craftRecipe WTAGarou_StripSilverJewellery
+    {
+        Time = 150,
+        Tags = AnySurfaceCraft,
+        timedAction = SawSmallItemMetal,
+        category = Metalworking,
+        inputs
+        {
+            item 4 tags[TinySilverScrap] flags[Prop2;AllowDestroyedItem],
+            item 1 tags[Pliers;MetalworkingPliers;LightMetalSnips] mode:keep flags[Prop1;MayDegradeVeryLight],
+        }
+        outputs
+        {
+            item 1 Base.SilverScrap,
+        }
+    }
+
+    craftRecipe WTAGarou_StripSilverware
+    {
+        Time = 150,
+        Tags = AnySurfaceCraft,
+        timedAction = SawSmallItemMetal,
+        category = Metalworking,
+        inputs
+        {
+            item 1 tags[SmallSilverScrap] flags[Prop2;AllowDestroyedItem],
+            item 1 tags[Pliers;MetalworkingPliers;LightMetalSnips] mode:keep flags[Prop1;MayDegradeVeryLight],
+        }
+        outputs
+        {
+            item 1 Base.SilverScrap,
+        }
+    }
+
+    /* 0.4.63: silvering is ONE round per craft (the Oct 16 playtest could only
+       silver six shells at a time); queue the quantity in the crafting
+       window. A recipe cannot take a sixth of a fragment, so a fragment is
+       first filed into Silver Filings, a 20-use drainable: shells take 3
+       uses (6 per fragment, as before), bullets 2 (10 per fragment, as
+       before). Times are the old batch times divided by the old batch sizes
+       (180/6, 240/10) so a full batch costs what it did. */
+    craftRecipe WTAGarou_FileSilverFragments
+    {
+        Time = 60,
+        Tags = AnySurfaceCraft,
+        timedAction = SawSmallItemMetal,
+        category = Metalworking,
+        inputs
+        {
+            item 1 [Base.SilverScrap],
+            item 1 tags[File] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverFilings,
+        }
+    }
+
+    /* 0.4.81: half a fragment of filings goes into a vanilla Smoke Bomb.
+       No skill: the filings are poured in with the smoke mix. */
+    craftRecipe WTAGarou_PackSilverSmokeBomb
+    {
+        Time = 40,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.SmokeBomb],
+            item 10 [WTAGarou.SilverFilings],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverSmokeBomb,
+        }
+    }
+
+    /* Shells are the simple one: shell, pliers, silver filings. */
+    craftRecipe WTAGarou_SilverShotgunShells
+    {
+        Time = 30,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.ShotgunShells],
+            item 3 [WTAGarou.SilverFilings],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverShotgunShells,
+        }
+    }
+
+    /* Bullets need a file as well as pliers; two filings uses per tip. */
+    craftRecipe WTAGarou_SilverTip9mm
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.Bullets9mm],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverBullets9mm,
+        }
+    }
+
+    craftRecipe WTAGarou_SilverTip45
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.Bullets45],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverBullets45,
+        }
+    }
+
+    craftRecipe WTAGarou_SilverTip44
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.Bullets44],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverBullets44,
+        }
+    }
+
+    craftRecipe WTAGarou_SilverTip38
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.Bullets38],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverBullets38,
+        }
+    }
+
+    craftRecipe WTAGarou_SilverTip357
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.Bullets357],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.SilverBullets357,
+        }
+    }
+
+    craftRecipe WTAGarou_SilverTip3030
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.3030Bullets],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.Silver3030Bullets,
+        }
+    }
+
+    craftRecipe WTAGarou_SilverTip308
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.308Bullets],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.Silver308Bullets,
+        }
+    }
+
+    craftRecipe WTAGarou_SilverTip556
+    {
+        Time = 24,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        inputs
+        {
+            item 1 [Base.556Bullets],
+            item 2 [WTAGarou.SilverFilings],
+            item 1 tags[File] mode:keep flags[Prop2;MayDegradeLight],
+            item 1 tags[Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+            item 1 WTAGarou.Silver556Bullets,
+        }
+    }
+
+    /* Silvering a metal weapon at a forge. The weapon is KEPT and marked by
+       WTAGarou.SilverAmmo.OnForgeWeapon ("Silver " prefix, WTAGarou_Silver
+       mod data); OnTestForgeInput refuses ranged, already-silver and
+       non-metal items so fuel and fragments are never wasted. The weapon
+       slot is every coatable weapon minus tongs, files and hammers (0.4.63),
+       so a forge tool cannot be picked as the weapon while still being
+       coatable with nitrate. 0.4.65: the slot is an explicit item list
+       generated by tools/gen_coatable_lists.py (same rule as
+       CoatableTagRuntime.decide) instead of tags[wtagarou:forgeable]: a
+       hosted co-op server runs without ZombieBuddy, so the Java tagging
+       never happens there and an empty tag aborts world load ("Tag has no
+       items"). No tag union here: HasMetal would put hammers back. */
+    craftRecipe WTAGarou_SilverWeapon
+    {
+        Time = 400,
+        SkillRequired = Blacksmith:1,
+        /* 0.4.59: floor only. OnTest also asks for the Blacksmith level vanilla
+           needs to forge that weapon's blade or head (WTAGarou.SilverAmmo.FORGE_LEVELS),
+           e.g. Machete 9, Hunting Knife 5, Kitchen Knife 4, Small Knife 1. */
+        timedAction = MakingHammer_Surface,
+        tags = PrimitiveForge,
+        category = Blacksmithing,
+        AllowBatchCraft = False,
+        OnTest = WTAGarou.SilverAmmo.OnTestForgeInput,
+        OnCreate = WTAGarou.SilverAmmo.OnForgeWeapon,
+        inputs
+        {
+            /* GENERATED forgeable list: tools/gen_coatable_lists.py */
+            item 1 [Base.Axe;Base.Axe_Old;Base.Axe_Sawblade;Base.Axe_Sawblade_Hatchet;Base.Axe_ScrapCleaver;Base.BarBell;Base.BarBell_Forged;Base.BaseballBat_Broken_Nails;Base.BaseballBat_Can;Base.BaseballBat_GardenForkHead;Base.BaseballBat_Metal;Base.BaseballBat_Metal_Bolts;Base.BaseballBat_Metal_Sawblade;Base.BaseballBat_Nails;Base.BaseballBat_RailSpike;Base.BaseballBat_RakeHead;Base.BaseballBat_Sawblade;Base.BaseballBat_ScrapSheet;Base.BaseballBat_Spiked;Base.BlockMaul;Base.BoltCutters;Base.BoneClub_Spiked;Base.BrassNameplate;Base.BreadKnife;Base.Broom_BarbedWire;Base.BucketMace_Metal;Base.BucketMace_Wood;Base.ButterKnife;Base.ButterKnife_Gold;Base.CarpentryChisel;Base.CarvingFork2;Base.CompassGeometry;Base.Crowbar;Base.CrowbarForged;Base.CrudeKnife;Base.CrudeShortSword;Base.CrudeSword;Base.CrudeSword_Broken;Base.Cudgel_Bone;Base.Cudgel_Brake;Base.Cudgel_GardenForkHead;Base.Cudgel_Nails;Base.Cudgel_Railspike;Base.Cudgel_Sawblade;Base.Cudgel_ScrapSheet;Base.Cudgel_SpadeHead;Base.Cudgel_Spike;Base.DumbBell;Base.DumbBell_Forged;Base.EngineMaul;Base.FieldHockeyStick_Broken_Nails;Base.FieldHockeyStick_Nails;Base.FieldHockeyStick_Sawblade;Base.FightingKnife;Base.FireplacePoker;Base.Fork;Base.ForkForged;Base.Fork_Gold;Base.GardenFork;Base.GardenFork_Forged;Base.GardenHoe;Base.GardenHoeForged;Base.Golfclub;Base.GridlePan;Base.GuitarElectric;Base.GuitarElectricBass;Base.HandAxe;Base.HandAxeForged;Base.HandAxe_Old;Base.HandFork;Base.HandScythe;Base.HandScytheForged;Base.HandShovel;Base.HandguardDagger;Base.Handiknife;Base.Handle_Can;Base.HuntingKnife;Base.HuntingKnifeForged;Base.IceAxe;Base.IceHockeyStick_BarbedWire;Base.IcePick;Base.IronBar;Base.IronBarHalf;Base.JawboneBovide_Morningstar;Base.Katana;Base.Katana_Broken;Base.KettleMace_Metal;Base.KettleMace_Wood;Base.KitchenKnife;Base.KitchenKnifeForged;Base.KnifeButterfly;Base.KnifeFillet;Base.KnifeParing;Base.KnifePocket;Base.KnifeShiv;Base.KnifeSushi;Base.LargeKnife;Base.LargeKnife_Scrap;Base.LeafRake;Base.LetterOpener;Base.LongCrudeKnife;Base.LongHandle_Brake;Base.LongHandle_Can;Base.LongHandle_Nails;Base.LongHandle_Railspike;Base.LongHandle_RakeHead;Base.LongHandle_Sawblade;Base.LongMace;Base.LongSpikedClub;Base.Machete;Base.MacheteForged;Base.MacheteKnife;Base.Machete_Crude;Base.MeatCleaver;Base.MeatCleaverForged;Base.MeatCleaver_Scrap;Base.MetalPipe_Railspike;Base.Morningstar_Scrap;Base.Multitool;Base.PickAxe;Base.PickAxeForged;Base.Plank_Brake;Base.Plank_Nails;Base.Plank_Saw;Base.Plank_Sawblade;Base.RailroadSpike;Base.RailroadSpikeKnife;Base.RailroadSpikePuller;Base.RailroadSpikePullerOld;Base.Rake;Base.Scalpel;Base.Scissors;Base.ScissorsForged;Base.ScrapMaul;Base.ScrapWeaponGardenFork;Base.ScrapWeaponRakeHead;Base.ScrapWeaponSpade;Base.ScrapWeapon_Brake;Base.Screwdriver;Base.Screwdriver_Improvised;Base.Screwdriver_Old;Base.ShortBat_Sawblade;Base.ShortSword;Base.ShortSword_Scrap;Base.Shovel;Base.Shovel2;Base.Sledgehammer;Base.Sledgehammer2;Base.SledgehammerForged;Base.SmallKnife;Base.SnowShovel;Base.SpadeForged;Base.SpearCrude;Base.SpearCrudeLong;Base.SpearFightingKnife;Base.SpearHuntingKnife;Base.SpearKnife;Base.SpearKnifeSmall;Base.SpearLargeKnife;Base.SpearLong;Base.SpearScissors;Base.SpearScrapKnife;Base.SpearShort;Base.SpearSteakKnife;Base.Spoon;Base.SpoonForged;Base.Spoon_Gold;Base.SteakKnife;Base.SteelBar;Base.StoneAxeLarge;Base.StoneMaul;Base.SwitchKnife;Base.Sword;Base.Sword_Broken;Base.Sword_Scrap;Base.Sword_Scrap_Broken;Base.TableLeg_Chain;Base.TableLeg_Nails;Base.TableLeg_Sawblade;Base.TinOpener_Old;Base.TreeBranch_Railspike;Base.WoodAxe;Base.WoodAxeForged;Base.WoodenStick_Can] mode:keep,
+            item 2 [Base.SilverScrap],
+            item 1 tags[Charcoal],
+            item 1 tags[Hammer;ClubHammer] mode:keep flags[Prop1;MayDegradeLight],
+            item 1 tags[Tongs] mode:keep flags[Prop2;MayDegradeLight],
+        }
+        outputs
+        {
+        }
+    }
+
+    /* 0.4.62: silver nitrate is a FLUID (silver_fluids.txt), in two stages.
+
+       Stage 1, anywhere with a surface: nitrate (NPK fertilizer, TWO USES of
+       one bag; a bag holds eight; or, 0.4.65, ONE instant cold pack, whose
+       filling is ammonium nitrate - `1:Base.Coldpack` is the per-item
+       amount syntax), the sulphuric acid of a cracked car battery
+       (destroyed) and one Silver Fragments go into an EMPTY GLASS fluid
+       container, which is KEPT and filled with up to 1.0 L of Raw Silver
+       Nitrate (jar and beer bottle hold 1.0 L, a drinking glass 0.2 L; what
+       does not fit is lost). The opening tool (knife, screwdriver, pliers) is
+       kept. No skill. Nothing plastic: plastic never carries the Glass tag,
+       and OnTestNitrateInput additionally refuses Glass-tagged items that are
+       not fluid containers (windshields, shards).
+
+       Stage 2 is not a recipe: put the vessel INTO a lit campfire, barbecue
+       or stove like a pot of tainted water. NitrateHeatPatch turns the raw
+       mix into Silver Nitrate at the tainted-water boil rate (container
+       temperature > 1.5; a lit fire is 1.8). The jar does not have to be a
+       cooking pot: the patch reads the fire's temperature, not the item's. */
+    craftRecipe WTAGarou_PrepareSilverNitrate
+    {
+        Time = 300,
+        Tags = AnySurfaceCraft,
+        timedAction = Making,
+        category = Weaponry,
+        AllowBatchCraft = False,
+        OnTest = WTAGarou.SilverAmmo.OnTestNitrateInput,
+        inputs
+        {
+            item 1 tags[Glass;GlassBottle] mode:keep flags[ItemIsFluid;IsEmpty],
+            +fluid 1.0 WTAGarou_SilverNitrateRaw,
+            item 1 [Base.SilverScrap],
+            item 2 [Base.Fertilizer;1:Base.Coldpack],
+            item 1 [Base.CarBattery1;Base.CarBattery2;Base.CarBattery3] mode:destroy,
+            item 1 tags[SharpKnife;Screwdriver;Pliers;MetalworkingPliers] mode:keep flags[Prop1;MayDegradeLight],
+        }
+        outputs
+        {
+        }
+    }
+
+    /* 0.4.62: coating takes 0.2 L of finished Silver Nitrate out of ANY fluid
+       container that holds it (five coats per litre; the vessel stays, empty
+       when the last coat is poured) and puts it on one metal melee weapon.
+       The weapon slot is every non-ranged metal weapon script (MetalValue,
+       HasMetal, Smeltable*, Sharpenable, or the carving fork / ice axe by name;
+       hammers and other forge tools included since 0.4.63; silver items
+       excluded), and an EQUIPPED weapon is accepted (vanilla IsNotWorn
+       rejected equipped items too). 0.4.63: InHandCraft, no surface needed
+       (only mixing the raw nitrate wants one). 0.4.65: the slot is an
+       explicit list generated by tools/gen_coatable_lists.py UNIONED with
+       the vanilla metal tags (InputScript merges [items] and tags[...]), so
+       metal weapons newer than the list still qualify; OnTestCoatInput
+       refuses the foil, cans and bulbs the tags drag in on client AND
+       server. tags[wtagarou:coatable] was fatal on a hosted co-op server
+       (no ZombieBuddy there, so the tag stayed empty). CoatableTagRuntime
+       still tags on clients; WTAGarouSilverAmmo.reportRecipeDrift logs any
+       rule-coatable weapon the recipe list misses.
+       Coated steel: 10% of max condition eaten, 12 landed hits of silver,
+       burns bare Garou hands while charged. Forged silver does not need it. */
+    craftRecipe WTAGarou_CoatSilverNitrate
+    {
+        Time = 150,
+        Tags = InHandCraft,
+        timedAction = Making,
+        category = Weaponry,
+        AllowBatchCraft = False,
+        OnTest = WTAGarou.SilverAmmo.OnTestCoatInput,
+        OnCreate = WTAGarou.SilverAmmo.OnCoatWeapon,
+        inputs
+        {
+            /* GENERATED coatable list: tools/gen_coatable_lists.py */
+            item 1 [Base.Axe;Base.Axe_Old;Base.Axe_Sawblade;Base.Axe_Sawblade_Hatchet;Base.Axe_ScrapCleaver;Base.BallPeenHammer;Base.BallPeenHammerForged;Base.BarBell;Base.BarBell_Forged;Base.BaseballBat_Broken_Nails;Base.BaseballBat_Can;Base.BaseballBat_GardenForkHead;Base.BaseballBat_Metal;Base.BaseballBat_Metal_Bolts;Base.BaseballBat_Metal_Sawblade;Base.BaseballBat_Nails;Base.BaseballBat_RailSpike;Base.BaseballBat_RakeHead;Base.BaseballBat_Sawblade;Base.BaseballBat_ScrapSheet;Base.BaseballBat_Spiked;Base.BlockMace;Base.BlockMaul;Base.BoltCutters;Base.BoneClub_Spiked;Base.BrassNameplate;Base.BreadKnife;Base.Broom_BarbedWire;Base.BucketMace_Metal;Base.BucketMace_Wood;Base.ButterKnife;Base.ButterKnife_Gold;Base.CarpentryChisel;Base.CarvingFork2;Base.ClubHammer;Base.ClubHammerForged;Base.CompassGeometry;Base.Crowbar;Base.CrowbarForged;Base.CrudeKnife;Base.CrudeShortSword;Base.CrudeSword;Base.CrudeSword_Broken;Base.Cudgel_Bone;Base.Cudgel_Brake;Base.Cudgel_GardenForkHead;Base.Cudgel_Nails;Base.Cudgel_Railspike;Base.Cudgel_Sawblade;Base.Cudgel_ScrapSheet;Base.Cudgel_SpadeHead;Base.Cudgel_Spike;Base.DumbBell;Base.DumbBell_Forged;Base.EngineMaul;Base.FieldHockeyStick_Broken_Nails;Base.FieldHockeyStick_Nails;Base.FieldHockeyStick_Sawblade;Base.FightingKnife;Base.File;Base.FireplacePoker;Base.Fork;Base.ForkForged;Base.Fork_Gold;Base.GardenFork;Base.GardenFork_Forged;Base.GardenHoe;Base.GardenHoeForged;Base.Golfclub;Base.GridlePan;Base.GuitarElectric;Base.GuitarElectricBass;Base.Hammer;Base.HammerForged;Base.HandAxe;Base.HandAxeForged;Base.HandAxe_Old;Base.HandFork;Base.HandScythe;Base.HandScytheForged;Base.HandShovel;Base.HandguardDagger;Base.Handiknife;Base.Handle_Can;Base.HuntingKnife;Base.HuntingKnifeForged;Base.IceAxe;Base.IceHockeyStick_BarbedWire;Base.IcePick;Base.IronBar;Base.IronBarHalf;Base.JawboneBovide_Morningstar;Base.Katana;Base.Katana_Broken;Base.KettleMace_Metal;Base.KettleMace_Wood;Base.KitchenKnife;Base.KitchenKnifeForged;Base.KnifeButterfly;Base.KnifeFillet;Base.KnifeParing;Base.KnifePocket;Base.KnifeShiv;Base.KnifeSushi;Base.LargeKnife;Base.LargeKnife_Scrap;Base.LeafRake;Base.LetterOpener;Base.LongCrudeKnife;Base.LongHandle_Brake;Base.LongHandle_Can;Base.LongHandle_Nails;Base.LongHandle_Railspike;Base.LongHandle_RakeHead;Base.LongHandle_Sawblade;Base.LongMace;Base.LongSpikedClub;Base.Machete;Base.MacheteForged;Base.MacheteKnife;Base.Machete_Crude;Base.MeatCleaver;Base.MeatCleaverForged;Base.MeatCleaver_Scrap;Base.MetalPipe_Railspike;Base.Morningstar_Scrap;Base.Multitool;Base.PickAxe;Base.PickAxeForged;Base.Plank_Brake;Base.Plank_Nails;Base.Plank_Saw;Base.Plank_Sawblade;Base.RailroadSpike;Base.RailroadSpikeKnife;Base.RailroadSpikePuller;Base.RailroadSpikePullerOld;Base.Rake;Base.Scalpel;Base.Scissors;Base.ScissorsForged;Base.ScrapMaul;Base.ScrapWeaponGardenFork;Base.ScrapWeaponRakeHead;Base.ScrapWeaponSpade;Base.ScrapWeapon_Brake;Base.Screwdriver;Base.Screwdriver_Improvised;Base.Screwdriver_Old;Base.ShortBat_Sawblade;Base.ShortSword;Base.ShortSword_Scrap;Base.Shovel;Base.Shovel2;Base.Sledgehammer;Base.Sledgehammer2;Base.SledgehammerForged;Base.SmallKnife;Base.SnowShovel;Base.SpadeForged;Base.SpearCrude;Base.SpearCrudeLong;Base.SpearFightingKnife;Base.SpearHuntingKnife;Base.SpearKnife;Base.SpearKnifeSmall;Base.SpearLargeKnife;Base.SpearLong;Base.SpearScissors;Base.SpearScrapKnife;Base.SpearShort;Base.SpearSteakKnife;Base.Spoon;Base.SpoonForged;Base.Spoon_Gold;Base.SteakKnife;Base.SteelBar;Base.StoneAxeLarge;Base.StoneMaul;Base.SwitchKnife;Base.Sword;Base.Sword_Broken;Base.Sword_Scrap;Base.Sword_Scrap_Broken;Base.TableLeg_Chain;Base.TableLeg_Nails;Base.TableLeg_Sawblade;Base.TinOpener_Old;Base.TreeBranch_Railspike;Base.WoodAxe;Base.WoodAxeForged;Base.WoodenStick_Can] tags[HasMetal;Sharpenable;SmeltableIronSmall;SmeltableIronMedium;SmeltableIronMediumPlus;SmeltableIronLarge;SmeltableSteelSmall;SmeltableSteelMedium;SmeltableSteelMediumPlus;SmeltableSteelLarge] mode:keep,
+            item 1 [*] mode:keep flags[ItemIsFluid],
+            -fluid 0.2 [WTAGarou_SilverNitrate],
+        }
+        outputs
+        {
+        }
+    }
+}
