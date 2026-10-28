@@ -1,37 +1,37 @@
 [h1]Werewolf: Project Wyldfyre[/h1]
-[i]A Werewolf: The Apocalypse fan mod for Project Zomboid Build 42. Play a Garou; or hunt one.[/i]
+[i]A Werewolf: The Apocalypse fan mod for Project Zomboid Build 42. Play as a werewolf; or have a good old werewolf hunt.[/i]
 
 [b]Requires [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3619862853]ZombieBuddy[/url] 2.3.2 or newer.[/b] When ZombieBuddy asks, choose Allow for the "Werewolf: Project Wyldfyre" Java module. Install notes are at the bottom.
 
 [h2]Become a Garou[/h2]
-Take the [b]Werewolf[/b] trait (8 points; Fast Healer, Hearty Appetite and Cat's Eyes come with it). On first spawn the Werewolf Startup panel asks who you are, then locks it for that character:
+Take the [b]Werewolf[/b] trait (8 points; Fast Healer, Hearty Appetite and Cat's Eyes come with it). On first spawn the Werewolf Startup panel asks who you are, then locks your choices for that character:
 [list]
-[*][b]Origin[/b]: Human-born starts as, and falls back to, Human; Wolf-born to Wolf; Metis to Near-Human. A Metis enters the war form at any Rage, burns it half as fast, and can leave it at 55 Rage or below. Everyone else needs 55 to enter and 75 or below to leave.
+[*][b]Origin[/b]: Human-born starts as, and falls back to, Human; Wolf-born to Wolf; Berzerker to Near-Human. A Berzerker can enter the berzerker form at any rage, and burns it half as fast, but can only leave it at 55 Rage or below. Everyone else needs 55 rage to go berzerk and 75 or below to leave.
 [*][b]Coat[/b]: the fur colour of your beast forms.
-[*][b]Auspice[/b]: the moon you were born under sets the Rage you drift back to when fed, watered and calm (30 to 70).
+[*][b]Baseline[/b]: the moon you were born under sets the Rage you drift back to when fed, watered and calm (30 to 70).
 [/list]
 
-[h2]Five forms, one body each[/h2]
+[h2]Five forms[/h2]
 [list]
-[*][b]Human (Homid)[/b]: the person you were. Nothing marks you.
+[*][b]Human (Homid)[/b]: the person you were. Nothing gives away your true nature.
 [*][b]Near-Human (Glabro)[/b]: bigger, stronger, still passes at a distance. Keeps its clothes, shoes and gloves.
-[*][b]Berzerker (Crinos)[/b]: the war form. Huge, double melee damage, shrugs off most flinches, sprints through wooden doors and over the first zombies in its way. Burns Rage every second you hold it and throws you back to your home form at 0. Too big for a car seat.
-[*][b]Near-Wolf (Hispo)[/b]: the dire wolf. Fast, tough, carries in its jaws, wears your bags as saddlebags on a harness. Too big for a car seat.
-[*][b]Wolf (Lupus)[/b]: a true wolf. Quiet, quick, harmless-looking. Can drive, badly, as if drunk.
+[*][b]Berzerker (Crinos)[/b]: the war form. Huge, double melee damage, shrugs off most flinches, sprints through wooden doors and through the first few zombies in its way. Burns rage every second you hold it and throws you back to your true form at 0 rage. Too big to enter a car.
+[*][b]Near-Wolf (Hispo)[/b]: the dire wolf. Fast, tough, carries primary slot in its jaws, all bags appear as saddlebags on a harness. Too big to enter a car.
+[*][b]Wolf (Lupus)[/b]: a true wolf, quiet and quick. Can enter cars and even drive, though badly, as if drunk.
 [/list]
-Shifts are channelled and cancellable (move or Esc): six seconds near the middle of the Rage bar, one second toward either end; the war form is always a one-second snap. Beast forms tear out of whatever you wear: Strip first, Dress afterwards (the same items come back from your bags or the floor). Hats, bags, jewellery, watches and held items are never damaged.
+Shifts are channelled and cancellable (move or Esc): they take six seconds near the middle of the Rage bar, one second toward either end; the war form is always a one-second snap. Beast forms tear out of whatever you wear: Strip first, Dress afterwards (the same items you took off or lost to shapeshifting come back from your bags or the floor, if nearby). Hats, bags, jewellery, watches and held items are never damaged or lost by shifting.
 
 [h2]Rage[/h2]
-Rage is situational. Fear, stress, pain and taking damage raise it; dealing damage spends it; food, water and howling settle it toward your auspice baseline; sadness, exhaustion and drowsiness drain it. At 100 Rage the beast takes over: a countdown, then a forced war form. Resist (panel button, radial slice or a bound key) stops the countdown, but every Resist makes the next one shorter while Rage stays over 95. Calm down or give in.
+Rage is situational. Fear, stress, pain and taking damage raise it; dealing damage spends it; food, water and howling settle it toward your auspice baseline; sadness, exhaustion and drowsiness drain it. At 100 Rage the beast takes over after a 10-second countdown. Resist (panel button, radial slice or a bound key) stops the countdown, but every Resist makes the next countdown shorter as long as Rage stays over 95. Calm down or give in to the rage.
 
 [h2]Paws[/h2]
-Near-Wolf and Wolf have no hands: no firearms (you can carry a gun, not fire, reload or rack it), no crafting, building, mechanics or siphoning. One item in the jaws, any worn bag as saddlebags. The war form keeps its thumbs. Shift back for the rest.
+Near-Wolf and Wolf have no hands, but don't get their bare feet scratched. So no firearms (you can carry a gun, but cannot fire, reload or rack it), no crafting, building, mechanics or siphoning. Primary item is carried in the jaws. Any worn bag appears as saddlebags. The berzerker form keeps its thumbs. Shift back for the rest.
 
 [h2]Healing, bites and silver[/h2]
-Beast forms heal fast: the war form closes ordinary wounds in about 100 seconds, Near-Wolf and Near-Human in under four minutes, and a finished heal clears glass, bullets, stitches and pain. A zombie bite is a Wyrm infection and is purged only by time in a beast form (about five minutes in the war form). Silver is the exception to all of it: it burns wherever it touches bare skin, a silver wound stops healing until the burn is gone, and a silver-burned foot will not sprint.
+Beast forms heal fast: the war form closes ordinary wounds in about 100 seconds, Near-Wolf and Near-Human in under four minutes, and a finished heal clears glass, bullets, stitches and pain. A zombie bite is labelled as Wyrm infection and is purged only by time in a beast form (about five minutes in the war form). Silver is the exception to all of it: it burns wherever it touches bare skin, a silver wound stops super-healing until the burn is gone, and a silver-burned foot will not sprint.
 
 [h2]For the hunters[/h2]
-Human players get a real counter-kit, crafted at a counter or table unless noted:
+Human players get a real werewolf-slaying kit, crafted at a counter or table unless noted:
 [list]
 [*][b]Silver Fragments[/b] from four pieces of silver jewellery and pliers, or one piece of silverware. A file turns a fragment into Silver Filings (20 uses).
 [*][b]Silver rounds[/b] for every calibre (9mm, .45, .44, .38, .357, .30-30, .308, 5.56) and shotgun shells, queued in bulk. Loaded like any other ammunition from the gun's context menu or reload radial; a gun holds silver or ordinary rounds, never a mix. Each silver round that wounds a werewolf burns the wound it made, and one that stays in burns until it is pulled.
@@ -69,8 +69,8 @@ Source code and issue tracker: [url=https://github.com/SeeGeeArtist/Werewolf-Pro
 
 [h2]Credits and permissions[/h2]
 [list]
-[*]Lupus/Hispo wolf body, animations and wolf sounds: adapted from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3581134738][B42] Tame-able Wolves[/url] by Freylith, used with Freylith's permission. Freylith is listed as a contributor on this item. These assets may not be lifted out of this mod or re-uploaded.
-[*]Form-shift completion whoosh is built on "5 Everyday Whooshes" by Tomlija, [url=https://freesound.org/s/175183/]freesound.org/s/175183[/url], licensed CC BY 3.0, modified (cut, pitched, layered).
-[*]Everything else (code, Java supplement, Crinos head, legs and tail, harness, saddlebags, UI, poster, creature voices, silver items): SeeGeeArtist.
+[*]Lupus/Hispo wolf body, wolf animations, wolf sounds, plus crinos head model: adapted from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3581134738][B42] Tame-able Wolves[/url] by Freylith, used with Freylith's permission. Freylith is listed as a contributor on this item. These assets may not be lifted out of this mod or re-uploaded.
+[*]Form-shift completion whoosh is from "5 Everyday Whooshes" by Tomlija, [url=https://freesound.org/s/175183/]freesound.org/s/175183[/url], licensed CC BY 3.0, modified (cut, pitched, layered).
+[*]Everything else (code, Java supplement, crinos legs and tail, harness, saddlebags, UI, poster, assorted creature voices and sound effects): SeeGeeArtist, with assistance from Perplexity.
 [*]Werewolf: The Apocalypse and the Garou are the property of Paradox Interactive / White Wolf. This is a non-commercial fan work and is not affiliated with them.
 [/list]
