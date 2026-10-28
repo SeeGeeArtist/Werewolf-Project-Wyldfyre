@@ -69,7 +69,7 @@ Source code and issue tracker: [url=https://github.com/SeeGeeArtist/Werewolf-Pro
 
 [h2]Credits and permissions[/h2]
 [list]
-[*]Lupus/Hispo wolf body, animations and wolf sounds: adapted from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3581134738][B42] Tame-able Wolves[/url] by Freylith, used with Freylith's permission. Freylith is listed as a contributor on this item. These assets may not be lifted out of this mod or re-uploaded.
+[*]Lupus/Hispo wolf body, animations and wolf sounds: adapted from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3581134738]Tame-able Wolves (B42)[/url] by Freylith, used with Freylith's permission. Freylith is listed as a contributor on this item. These assets may not be lifted out of this mod or re-uploaded.
 [*]Form-shift completion whoosh is built on "5 Everyday Whooshes" by Tomlija, [url=https://freesound.org/s/175183/]freesound.org/s/175183[/url], licensed CC BY 3.0, modified (cut, pitched, layered).
 [*]Everything else (code, Java supplement, Crinos head, legs and tail, harness, saddlebags, UI, poster, creature voices, silver items): SeeGeeArtist.
 [*]Werewolf: The Apocalypse and the Garou are the property of Paradox Interactive / White Wolf. This is a non-commercial fan work and is not affiliated with them.
