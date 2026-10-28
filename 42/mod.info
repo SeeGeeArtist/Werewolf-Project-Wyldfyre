@@ -1,7 +1,7 @@
 name=Werewolf: Project Wyldfyre
 id=WTAGarou
 author=SeeGeeArtist
-description=Play a Garou werewolf in Build 42: five forms (Human, Near-Human, the Berzerker war form, Near-Wolf, Wolf) with their own bodies, channelled cancellable shifts, a situational Rage economy, forced war-form at 100 Rage, fast healing that purges the Knox virus, jaw carry and saddlebags for the wolf forms, controller and Steam Deck wheels, solo and multiplayer. Humans get a real counter-kit: silver rounds for every calibre, forged silver weapons, silver nitrate coatings, scattered silver and silver smoke bombs that burn werewolves. Requires ZombieBuddy.
+description=Pick the werewolf trait to play as one, solo or multiplayer. Five forms (Human, Near-Human, Berzerker form, Near-Wolf, Wolf) with their own bodies, stats, channelled cancellable shifts, a situational Rage economy, forced berzerk at 100 Rage, fast healing that purges the Knox virus, jaw carry and saddlebags for the wolf forms. Controller and Steam Deck compatible with radial menus. Human players can counter werewolves with silver rounds for every calibre, forged silver weapons, silver nitrate coatings, scattered silver and silver smoke bombs that cause silver burn, disabling super healing until the burn heals naturally. Requires ZombieBuddy.
 poster=poster.png
 icon=icon.png
 modversion=0.4.97
