@@ -42,11 +42,9 @@ Human players get a real werewolf-slaying kit, crafted at a counter or table unl
 [/list]
 Silver inside a vessel or a gun does not burn; bare silver in the hand or against the skin does.
 
-[h2]Multiplayer, controller, Steam Deck[/h2]
+[h2]Multiplayer, controller[/h2]
 [list]
-[*]Solo and multiplayer (host-and-join tested). Every player and the server need the same version; the Java supplement is client-only, the server runs the Lua.
 [*]Native controller wheels for forms, Howl, Strip, Dress, Resist and the Rage panel. Split-screen supported.
-[*]Steam Deck works; ZombieBuddy needs its native Linux runtime (see its page).
 [/list]
 
 [h2]Install[/h2]
@@ -69,7 +67,7 @@ Source code and issue tracker: [url=https://github.com/SeeGeeArtist/Werewolf-Pro
 
 [h2]Credits and permissions[/h2]
 [list]
-[*]Lupus/Hispo wolf body, wolf animations, wolf sounds, plus crinos head model: adapted from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3581134738][B42] Tame-able Wolves[/url] by Freylith, used with Freylith's permission. Freylith is listed as a contributor on this item. These assets may not be lifted out of this mod or re-uploaded.
+[*]Lupus/Hispo wolf body, wolf animations, wolf sounds, plus crinos head model: adapted from [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3581134738] B42 Tame-able Wolves[/url] by Freylith, used with Freylith's permission. Freylith is listed as a contributor on this item. These assets may not be lifted out of this mod or re-uploaded.
 [*]Form-shift completion whoosh is from "5 Everyday Whooshes" by Tomlija, [url=https://freesound.org/s/175183/]freesound.org/s/175183[/url], licensed CC BY 3.0, modified (cut, pitched, layered).
 [*]Everything else (code, Java supplement, crinos legs and tail, harness, saddlebags, UI, poster, assorted creature voices and sound effects): SeeGeeArtist, with assistance from Perplexity.
 [*]Werewolf: The Apocalypse and the Garou are the property of Paradox Interactive / White Wolf. This is a non-commercial fan work and is not affiliated with them.
