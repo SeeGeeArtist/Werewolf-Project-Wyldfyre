@@ -42,9 +42,9 @@ Human players get a real werewolf-slaying kit, crafted at a counter or table unl
 [/list]
 Silver inside a vessel or a gun does not burn; bare silver in the hand or against the skin does.
 
-[h2]Multiplayer, controller[/h2]
+[h2]Controller[/h2]
 [list]
-[*]Native controller wheels for forms, Howl, Strip, Dress, Resist and the Rage panel. Split-screen supported.
+[*]Native controller wheels for forms, Howl, Strip, Dress, Resist and the Rage panel. Defaults are d-pad down for howl, dress, strip, and toggling the rage panel; and d-pad right for resist and shapeshifting. Split-screen supported.
 [/list]
 
 [h2]Install[/h2]
@@ -54,13 +54,6 @@ Silver inside a vessel or a gun does not burn; bare silver in the hand or agains
 [*]When ZombieBuddy asks about the WTAGarou Java module, choose Allow. Without it the Lua side still runs, but the per-form bodies and the war-form cosmetics do not appear.
 [*]New character: take the Werewolf trait. The Werewolf Guide opens on first spawn and stays behind the Guide button on the Rage panel.
 [/olist]
-
-[h2]Known limits[/h2]
-[list]
-[*]Build 42 moves under us; the Java supplement targets 42.20/42.21. If an update breaks the form bodies, the Lua gameplay keeps working while we catch up.
-[*]NPC reactions (witnesses, infamy, hunters) are not in this release.
-[*]Other mods: report what breaks; compatibility fixes are the plan for the first updates.
-[/list]
 
 [h2]Source, bugs, licence[/h2]
 Source code and issue tracker: [url=https://github.com/SeeGeeArtist/Werewolf-Project-Wyldfyre]github.com/SeeGeeArtist/Werewolf-Project-Wyldfyre[/url]. The code is GPL-3.0-or-later; each release there names the SHA-256 of the shipped Java supplement so you can rebuild it and compare. Report bugs there or in the discussion below, with your console.txt.
