@@ -44,6 +44,33 @@ limits", not as features.
 8. Development repo `Zomboid-Garou` stays PRIVATE for good (its history
    holds the replaced third-party files).
 
+## Signing the jar for ZombieBuddy (optional, do it once the item exists)
+
+ZombieBuddy "signing" is a sidecar file `WTAGarouVisuals.jar.zbs` next to
+the jar: an Ed25519 signature over `ZBS:<your SteamID64>:<jar sha256>`.
+Users who approve one signed jar can trust the author, and later jars
+signed with the same key load without another prompt. The signer SteamID64
+must be the Workshop uploader's account. ZombieBuddy finds your public key
+in your Steam profile summary (`JavaModZBS:<64 hex>`) or in its
+`authors.json`. It is identity and integrity, not a safety review.
+
+One time, on your PC (needs Python with `pip install cryptography`, or
+OpenSSL 3 on PATH):
+
+    python3 tools/sign_jar_zbs.py keygen
+        -> private key ~/.zbs/wtagarou-ed25519.pem (back it up, never commit)
+        -> workshop/ZBS_PUBLIC_KEY.txt (commit) and the JavaModZBS line
+    paste the JavaModZBS:... line into Steam > your profile > Edit Profile > Summary
+    python3 tools/sign_jar_zbs.py sign --steamid <your 17-digit SteamID64>
+        -> 42/media/java/client/WTAGarouVisuals.jar.zbs (commit; ships with the jar)
+
+After EVERY jar rebuild, before staging: `python3 tools/sign_jar_zbs.py sign`
+(the SteamID is remembered in `workshop/ZBS_STEAMID64.txt`). A sidecar for
+an older jar is rejected as tampered, and `check_workshop_staging.py` fails
+on it; a missing sidecar is only a warning (the mod loads unsigned, as now).
+The assistant rebuilds the jar in its sandbox and cannot sign; the private
+key stays with you.
+
 After release: every fix is bump -> tests -> push -> `tools/publish_source_snapshot.sh`
 -> stage -> upload. Player reports go to GitHub Issues or the Workshop
 discussion; ask for `console.txt` and the mod list.

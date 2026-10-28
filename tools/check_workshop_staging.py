@@ -89,6 +89,24 @@ else:
         if w != h or w not in (256, 512): fail(f"preview.png must be a 256 or 512 square, got {w}x{h}")
         else: ok(f"preview.png {w}x{h}, {len(data)} bytes")
 
+# ZombieBuddy signature --------------------------------------------------------
+# <jar>.zbs next to the jar, verified exactly as ZBSVerifier does, with the
+# public key committed in workshop/ZBS_PUBLIC_KEY.txt. Stale = tampered.
+sys.path.insert(0, str(repo / "tools"))
+try:
+    import sign_jar_zbs as _zbs
+    jar = (target if target else repo) / "42" / "media" / "java" / "client" / "WTAGarouVisuals.jar"
+    pub = repo / "workshop" / "ZBS_PUBLIC_KEY.txt"
+    if not pub.is_file():
+        warn("no workshop/ZBS_PUBLIC_KEY.txt: jar ships UNSIGNED (ZombieBuddy asks every user to approve; run tools/sign_jar_zbs.py keygen + sign)")
+    elif not jar.is_file():
+        warn(f"jar missing at {jar}")
+    else:
+        okz, msg = _zbs.verify_sidecar(jar, pub.read_text().strip())
+        (ok if okz else fail)("ZBS " + msg)
+except Exception as e:  # never let the signer break the checker
+    warn(f"ZBS check skipped: {e}")
+
 # Steam page text ------------------------------------------------------------
 page = repo / "workshop" / "STEAM_PAGE.bbcode.txt"
 if page.is_file():

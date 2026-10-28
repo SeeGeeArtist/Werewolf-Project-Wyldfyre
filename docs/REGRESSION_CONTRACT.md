@@ -70,6 +70,13 @@ Write-up: `docs/PLAYTEST_FIXES_0483.md`.
   (Glabro: ~5 cm float / ~5 cm sink; Crinos: cap binds, 8 cm sink).
   `PlayerSitOnGroundState` is untouched. The pelvis-height sanity check is
   skipped for seats.
+- ZBS signing (0.4.97, `tools/sign_jar_zbs.py`): keygen/sign/verify for the
+  ZombieBuddy sidecar `WTAGarouVisuals.jar.zbs` (Ed25519 over
+  `ZBS:<SteamID64>:<sha256>`, three-line file, mirrors `ZBSVerifier`).
+  Private key lives outside the repo (`~/.zbs/`); `workshop/ZBS_PUBLIC_KEY.txt`
+  and `workshop/ZBS_STEAMID64.txt` are committed once the author signs. The
+  staging checker verifies the sidecar against the jar (stale = failure,
+  missing = warning). Every jar rebuild needs a re-sign by the author.
 - Release copy (0.4.97): `42/mod.info` `description=` and
   `workshop/workshop.txt` carry the same one-paragraph summary;
   `workshop/STEAM_PAGE.bbcode.txt` is the full page (checker fails above
