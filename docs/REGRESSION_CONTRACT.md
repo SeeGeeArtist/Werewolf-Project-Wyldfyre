@@ -70,6 +70,12 @@ Write-up: `docs/PLAYTEST_FIXES_0483.md`.
   (Glabro: ~5 cm float / ~5 cm sink; Crinos: cap binds, 8 cm sink).
   `PlayerSitOnGroundState` is untouched. The pelvis-height sanity check is
   skipped for seats.
+- Patch preload (0.4.98, `Main.main`): every `@Patch` target class is
+  loaded before ZombieBuddy installs the advice, so load order (first mod
+  pass at startup vs. after the main menu) no longer decides which patches
+  apply. `PatchTargetsTest` fails when a new `@Patch` target is not in
+  `Main.PATCH_TARGETS`. Expect `patch targets preloaded=N/N` in the console.
+  See docs/PATCH_PRELOAD_0498.md.
 - ZBS signing (0.4.97, `tools/sign_jar_zbs.py`): keygen/sign/verify for the
   ZombieBuddy sidecar `WTAGarouVisuals.jar.zbs` (Ed25519 over
   `ZBS:<SteamID64>:<sha256>`, three-line file, mirrors `ZBSVerifier`).

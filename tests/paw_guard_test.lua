@@ -19,6 +19,9 @@ local flashed={}
 WTAGarou.HUD={instance={flashDenial=function(_,r) flashed[#flashed+1]=r end}}
 require "WTAGarouPawGuard"
 local P=WTAGarou.Paws
+-- 0.4.98: refusals are throttled on a clock; every call here is a new second.
+local fakeMs=0
+P.clock=function() fakeMs=fakeMs+1000 return fakeMs end
 
 local function player(form,opts) opts=opts or {} return {form=form,garou=opts.garou} end
 check(P.isPaws(player("Hispo")) and P.isPaws(player("Lupus")),"Hispo and Lupus are paws")
@@ -123,3 +126,16 @@ check(biteG<vanillaGuitar,"bite normalisation lowers an inflated heavy value")
 check(T.biteSpeed(0.6,guitar,hispo)<0.7 and T.biteSpeed(0,guitar,hispo)==0,"tired bites stay slow; zero passes through")
 check(T.biteSpeed(5,bat,hispoBat)==1.11,"bite cap 1.11 like the generic row")
 print("PASS: "..n.." paw-guard lockout/whitelist and jaws bite-speed assertions; not a controller playtest.")
+
+-- 0.4.98 throttle: same reason inside half a second flashes once, logs once per 10 s.
+do
+    local t=0; P.clock=function() return t end
+    P.lastFlash={}; P.lastLog={}
+    flashed={}
+    for _=1,5 do P.refuse(wolf,"paws_firearm") end
+    check(#flashed==1,"five refusals in one frame flash once ("..#flashed..")")
+    t=600; P.refuse(wolf,"paws_firearm")
+    check(#flashed==2,"a refusal half a second later flashes again")
+    t=700; P.refuse(wolf,"paws_craft")
+    check(#flashed==3 and flashed[3]=="paws_craft","a different reason is not throttled by the first")
+end

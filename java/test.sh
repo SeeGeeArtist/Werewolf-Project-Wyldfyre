@@ -7,6 +7,7 @@ BUILD="$(mktemp -d)"
 trap 'rm -rf "$BUILD"' EXIT
 mapfile -t TESTS < <(find "$HERE/test" "$HERE/stubs" -name '*.java' | sort)
 javac --release 17 -cp "$ZB:$JAR" -d "$BUILD" "${TESTS[@]}"
+java -ea -cp "$ZB:$JAR:$BUILD" PatchTargetsTest
 java -ea -Djdk.attach.allowAttachSelf=true -cp "$ZB:$JAR:$BUILD" ScaleTest
 java -ea -Djdk.attach.allowAttachSelf=true -Dwtagarou.test.root="$HERE/.." -cp "$ZB:$JAR:$BUILD" WolfCombatTest
 java -ea -Djdk.attach.allowAttachSelf=true -cp "$ZB:$JAR:$BUILD" WolfHarnessTest

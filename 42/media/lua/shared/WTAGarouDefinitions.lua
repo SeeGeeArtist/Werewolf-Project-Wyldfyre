@@ -60,7 +60,7 @@ function WTAGarou.Rich.plain(body)
     out = out:gsub(" +", " "):gsub(" \n", "\n"):gsub("\n ", "\n"):gsub("^ ", ""):gsub(" $", "")
     return out
 end
-WTAGarou.VERSION = "0.4.97"
+WTAGarou.VERSION = "0.4.98"
 
 print("==================================================")
 print("[WTAGarou] Definitions loaded - version " .. WTAGarou.VERSION)

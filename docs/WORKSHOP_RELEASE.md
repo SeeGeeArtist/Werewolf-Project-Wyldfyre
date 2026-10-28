@@ -44,6 +44,13 @@ limits", not as features.
 8. Development repo `Zomboid-Garou` stays PRIVATE for good (its history
    holds the replaced third-party files).
 
+## After every jar rebuild
+
+1. `python3 tools/sign_jar_zbs.py sign` (if you have signed before; a stale
+   `.zbs` blocks the mod).
+2. Stage, upload, then check the console on a machine that loads the mod at
+   startup: `[WTAGarou Java] 0.4.98 loaded; patch targets preloaded=30/30`.
+
 ## Signing the jar for ZombieBuddy (optional, do it once the item exists)
 
 ZombieBuddy "signing" is a sidecar file `WTAGarouVisuals.jar.zbs` next to

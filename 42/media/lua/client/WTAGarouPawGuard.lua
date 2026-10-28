@@ -80,10 +80,28 @@ function P.isPaws(player)
         and WTAGarou.Slots.isQuadruped(player) == true
 end
 
+-- 0.4.98: vanilla re-queues a refused reload every frame, so a wolf holding
+-- an empty gun produced three refusals per frame (11,000 console lines in
+-- one Deck session). Flash at most twice a second, log once per 10 s.
+P.lastFlash = P.lastFlash or {}
+P.lastLog = P.lastLog or {}
+local function nowMs()
+    if P.clock then return P.clock() end          -- tests inject a clock
+    if getTimestampMs then return getTimestampMs() end
+    return os.time() * 1000
+end
 function P.refuse(player, reason)
-    local hud = WTAGarou.HUD and WTAGarou.HUD.instance
-    if hud and hud.flashDenial then hud:flashDenial(reason or "paws_craft") end
-    print("[WTAGarou][PawGuard] refused (" .. tostring(reason) .. ") in quadruped form")
+    reason = reason or "paws_craft"
+    local t = nowMs()
+    if (t - (P.lastFlash[reason] or -1e12)) >= 500 then
+        P.lastFlash[reason] = t
+        local hud = WTAGarou.HUD and WTAGarou.HUD.instance
+        if hud and hud.flashDenial then hud:flashDenial(reason) end
+    end
+    if (t - (P.lastLog[reason] or -1e12)) >= 10000 then
+        P.lastLog[reason] = t
+        print("[WTAGarou][PawGuard] refused (" .. tostring(reason) .. ") in quadruped form")
+    end
 end
 
 -- Recipe name of a crafting action, if the action exposes one.
