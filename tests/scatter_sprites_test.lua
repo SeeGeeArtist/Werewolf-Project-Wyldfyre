@@ -28,6 +28,11 @@ local function newManager()
         function s:getID() return self.id end
         function s:getName() return self.name end
         function s:setName(n) self.name = n end
+        s.flags = {}
+        function s:getProperties()
+            local spr = self
+            return { set = function(_, f) spr.flags[f] = true end }
+        end
         return s
     end
     function m:AddSprite(path, id)
@@ -76,6 +81,18 @@ check(SS.registered(), "OnLoadedTileDefinitions re-registers")
 local before = #printed
 check(SS.ensure() == true, "ensure true")
 check(#printed == before, "ensure does not re-register when ids resolve")
+
+-- 0.4.99: every registered variant is a FloorOverlay (flat floor depth in
+-- B42, so it draws under a character standing on it).
+IsoFlagType = { FloorOverlay = "FLAG_FloorOverlay" }
+m:Dispose(); SS.register(m)
+for i, path in ipairs(SS.PATHS) do
+    check(m.named[path].flags["FLAG_FloorOverlay"] == true, "variant " .. i .. " flagged FloorOverlay")
+end
+IsoFlagType = nil
+m:Dispose(); SS.register(m)
+check(m.named[SS.PATHS[1]].flags["FloorOverlay"] == true, "string fallback when IsoFlagType is not exposed")
+check(SS.markFloorOverlay({}) == false, "a sprite without properties is skipped, no error")
 
 -- ensure() repairs a wiped manager (lazy path for a late event).
 m:Dispose()
