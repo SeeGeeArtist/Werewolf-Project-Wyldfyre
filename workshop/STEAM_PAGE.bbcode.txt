@@ -1,5 +1,5 @@
 [h1]Werewolf: Project Wyldfyre[/h1]
-[i]A Werewolf: The Apocalypse fan mod for Project Zomboid Build 42. Play a Garou; or hunt one.[/i]
+[i]A Werewolf: The Apocalypse fan mod for Project Zomboid Build 42. Play a Garou; or have a good old werewolf hunt.[/i]
 
 [b]Requires [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3619862853]ZombieBuddy[/url] 2.3.2 or newer.[/b] When ZombieBuddy asks, choose Allow for the "Werewolf: Project Wyldfyre" Java module. Install notes are at the bottom.
 

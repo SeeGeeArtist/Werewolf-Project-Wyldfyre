@@ -65,6 +65,29 @@ function SS.isScatterSpriteName(name)
     return false
 end
 
+-- 0.4.99: B42 draws every tile with a depth map. A sprite with no floor
+-- flag gets the default "whole_tile" depth (IsoSprite.renderDepth), a full
+-- cube whose front corner, the middle third of the image, is nearer the
+-- camera than a character standing on the square. That is why the middle
+-- of the scatter drew over the player's feet and the outer thirds under.
+-- FloorOverlay gives it flat floor depth instead. The flag is otherwise only
+-- read when the map loader meets it in a lotpack (CellLoader), and our tiles
+-- are placed at runtime, so it changes nothing else; solidfloor is NOT used
+-- because that would make the square treat our tile as its floor.
+function SS.markFloorOverlay(spr)
+    if not spr or not spr.getProperties then return false end
+    local ok = pcall(function()
+        local props = spr:getProperties()
+        if IsoFlagType and IsoFlagType.FloorOverlay then
+            props:set(IsoFlagType.FloorOverlay)
+        else
+            props:set("FloorOverlay", "")
+        end
+    end)
+    if not ok then print("[WTAGarou][Scatter] could not mark scatter sprite as floor overlay") end
+    return ok
+end
+
 -- Register every variant with its fixed id. Idempotent: a second call finds
 -- the path already in the manager's named map and the engine keeps the
 -- first id (which is the same id). Returns true when all four registered.
@@ -79,6 +102,7 @@ function SS.register(manager)
             -- Single-texture sprites have a nil name; vanilla menus and
             -- IsoSprite.getSprite(manager, spr, offset) read it.
             if spr and spr.setName then spr:setName(path) end
+            SS.markFloorOverlay(spr)
             if spr and spr.getID and spr:getID() ~= id then
                 -- Something made this path id-less before us (the engine
                 -- keeps the first id for a duplicate texture). Saved tiles

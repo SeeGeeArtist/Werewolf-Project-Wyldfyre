@@ -124,7 +124,7 @@ end}
 dofile(root .. "/42/media/lua/server/WTAGarouServer.lua")
 
 -- ------------------------------------------------------- definitions ----
-check(WTAGarou.VERSION=="0.4.98", "version bumped")
+check(WTAGarou.VERSION=="0.4.99", "version bumped")
 check(WTAGarou.GetForm("Glabro").rageCost == 20, "Glabro costs 20, same as Hispo")
 for form, target in pairs({Glabro=26, Hispo=32}) do
     local fd=WTAGarou.GetForm(form)
