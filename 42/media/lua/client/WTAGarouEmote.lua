@@ -18,8 +18,8 @@ function ISEmoteRadialMenu:fillMenu(submenu)
     local menu = getPlayerRadialMenu(self.playerNum)
     if not menu then return end
 
-    local target = WTAGarou.BaselineRage(WTAGarou.GetData(player))
-    menu:addSlice(string.format("Howl\nRage %d", target), iconFor("howl"),
+    local target = (WTAGarou.EffectiveBaselineRage or WTAGarou.BaselineRage)(WTAGarou.GetData(player))
+    menu:addSlice(string.format("Howl\nRage %g", math.floor(target * 10 + 0.5) / 10), iconFor("howl"),
         WTAGarou.RequestHowl, player)
     menu:addSlice("Toggle\nRage panel", iconFor("shift"), function(owner)
         if WTAGarou.HUD and WTAGarou.HUD.toggle then WTAGarou.HUD.toggle(owner) end

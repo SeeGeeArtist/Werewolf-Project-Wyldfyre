@@ -60,7 +60,7 @@ function WTAGarou.Rich.plain(body)
     out = out:gsub(" +", " "):gsub(" \n", "\n"):gsub("\n ", "\n"):gsub("^ ", ""):gsub(" $", "")
     return out
 end
-WTAGarou.VERSION = "0.4.99"
+WTAGarou.VERSION = "0.5.0"
 
 print("==================================================")
 print("[WTAGarou] Definitions loaded - version " .. WTAGarou.VERSION)
@@ -202,7 +202,7 @@ WTAGarou.FormData = {
     Crinos = {
         name = "Crinos",
         displayName = "Berzerker",
-        description = "The explosive battle form. Devastating, terrifying, natural armor. Bursts out of worn clothing. A sprint smashes wooden doors (12 Rage, 18 locked) and knocks over the first few zombies in its way.",
+        description = "The explosive battle form. Devastating, terrifying, natural armor. Bursts out of worn clothing. With Resolve, a sprint knocks over the first few zombies in its way and smashes wooden doors (12 Rage, 18 locked).",
         rageCost = 10,
         rageRequired = 55,
         meleeDamage = 2.00, -- 0.4.68: halved from 4.00 (melee only; firearms are never boosted)
@@ -908,13 +908,23 @@ end
 function WTAGarou.ValidAuspice(key)
     return WTAGarou.AuspiceByKey(key) ~= nil
 end
--- The Rage value this character drifts toward (contentment, howling).
+-- The permanent Startup selection. Moon exposure must NEVER change this.
 function WTAGarou.BaselineRage(data)
     if data and data.auspiceLocked == true then
         local a = WTAGarou.AuspiceByKey(data.auspice)
         if a then return a.baseline end
     end
     return WTAGarou.Rage.BASELINE_DEFAULT or 50
+end
+-- Server-sampled moon exposure moves the actual drift/howl target, not the
+-- saved auspice. Clients use the same exposure received in RageSync.
+function WTAGarou.EffectiveBaselineRage(data)
+    local M = WTAGarou.MoonLight or {}
+    local exposure = tonumber(data and data.moonExposure) or 0
+    if exposure ~= exposure or M.ENABLED == false then exposure = 0 end
+    exposure = math.max(0, math.min(1, exposure))
+    return math.max(0, math.min(WTAGarou.Rage.MAX or 100,
+        WTAGarou.BaselineRage(data) + math.max(0, tonumber(M.BASELINE_BONUS) or 0) * exposure))
 end
 -- Contentment drift per second toward the baseline (pure).
 -- 0.4.70: the contentment drift stands still only while the 100-Rage
@@ -950,19 +960,25 @@ function WTAGarou.FurInsulation(form)
 end
 
 -- 0.4.21: countdown length after `resists` successful Resists (pure).
--- Linear phase: D - n while that stays >= LOG_BELOW. Logarithmic phase:
+-- Resolve slows progress along the existing curve, from 2 s to 1 s per
+-- resist at level 10. Scale the count rather than rounding a new phase
+-- boundary: higher Resolve must never shorten the same numbered countdown.
+-- Linear phase: D - n * step while that stays >= LOG_BELOW. Logarithmic phase:
 -- MIN + (LOG_BELOW - MIN) / (1 + ln(1 + k)), k = Resists past the linear
 -- phase; it shrinks forever but never reaches MIN_SECONDS (0.5 s).
-function WTAGarou.ResistCountdownSeconds(resists, base)
+function WTAGarou.ResistCountdownSeconds(resists, base, resolveLevel)
     local R = WTAGarou.Rage
     local C = R.RESIST or {}
     local D = tonumber(base) or R.FORCE_CRINOS_SECONDS or 10
-    local step, low, min = C.LINEAR_STEP or 1, C.LOG_BELOW or 2, C.MIN_SECONDS or 0.5
+    local step = WTAGarou.ResolveResistStep(resolveLevel)
+    local low, min = C.LOG_BELOW or 2, C.MIN_SECONDS or 0.5
     local n = math.max(0, math.floor(tonumber(resists) or 0))
-    local linearSteps = math.max(0, math.floor((D - low) / step + 1e-9))
-    if n <= linearSteps then return D - n * step end
-    local startLog = D - linearSteps * step   -- >= low, first value of the log phase
-    local k = n - linearSteps
+    local originalStep = C.LINEAR_STEP or 2
+    local effectiveCount = n * step / originalStep
+    local linearSteps = math.max(0, math.floor((D - low) / originalStep + 1e-9))
+    if effectiveCount <= linearSteps then return D - effectiveCount * originalStep end
+    local startLog = D - linearSteps * originalStep
+    local k = effectiveCount - linearSteps
     return min + (startLog - min) / (1 + math.log(1 + k))
 end
 
@@ -1106,9 +1122,16 @@ WTAGarou.DoorCharge = {
 WTAGarou.CrowdCharge = {
     Crinos = { limit = 3, windowSeconds = 3.0 },
 }
-function WTAGarou.CrowdChargeFor(form)
+-- 0.5.0: pass the Resolve level. The charge is locked until
+-- Resolve.UNLOCK.CROWD_CHARGE and its limit grows with the level
+-- (Resolve.CROWD_CHARGE_LIMIT); the table above stays the window and the
+-- pre-Resolve limit for any other form listed here. nil level = legacy reading.
+function WTAGarou.CrowdChargeFor(form, resolveLevel)
     local rule = (WTAGarou.CrowdCharge or {})[form]
     if not rule then return 0, 0 end
+    if form == "Crinos" and resolveLevel ~= nil and WTAGarou.ResolveCrowdChargeLimit then
+        return WTAGarou.ResolveCrowdChargeLimit(resolveLevel), rule.windowSeconds or 0
+    end
     return rule.limit or 0, rule.windowSeconds or 0
 end
 
@@ -1152,7 +1175,76 @@ WTAGarou.Regeneration = {
 -- (<= 20 or >= 80) and staying there. BASE is what the old 10 -> 2 ramp gave
 -- at 50 Rage, so the middle of the bar feels as before. Crinos keeps its own
 -- fixed snap (CRINOS).
-WTAGarou.TransformTime = { BASE = 6.0, FAST = 1.0, PLATEAU = 5, FULL_AT = 20, COOLDOWN = 3.0, CRINOS = 1.0 }
+WTAGarou.TransformTime = { BASE = 6.0, FAST = 1.0, PLATEAU = 5, FULL_AT = 20, COOLDOWN = 3.0, CRINOS = 1.0,
+    -- 0.5.0: the plateau sits on the middle of the bar (50). true centres it
+    -- on the character's baseline Rage instead (WTAGarou.BaselineRage).
+    CENTER_ON_BASELINE = false,
+    -- 0.5.0: additive seconds per form pair, "From>To" ("Homid>Crinos" = 0.5).
+    -- PAIR_BERZERKER wins for a Berzerker Origin, then PAIR, then 0. Empty by
+    -- default so every pair keeps the curve above exactly as before.
+    PAIR = {},
+    PAIR_BERZERKER = {},
+    -- Floor for the body part of the channel after the moon has taken its cut.
+    MIN_SECONDS = 0.25,
+}
+-- 0.5.0: the Rage buffer around the Crinos thresholds. A Garou may START a
+-- shift into Crinos up to WIDTH Rage short of the 55 it normally needs, and
+-- may start a shift OUT of Crinos up to WIDTH Rage above the lock line
+-- (75; 55 for a Berzerker Origin). Every point of distance adds one second to
+-- the channel, capped at MAX_SECONDS. Resolve widens the admission window
+-- (PER_RESOLVE_LEVEL Rage per level) without raising that cap. Berzerker
+-- Origin has no Crinos entry floor, so it has no entry buffer. Glabro and
+-- Hispo have no buffer: their floor IS their cost (20), waiting is the buffer.
+WTAGarou.ShiftBuffer = { WIDTH = 6, MAX_SECONDS = 6, PER_RESOLVE_LEVEL = 1 }
+-- 0.5.0: moonlight on the skin speeds the body part of a shift. Exposure is
+-- 0..1 = sky access x moon brightness x sky weight x (1 - cloud) x (1 - fog),
+-- sky weight = DAY_SHARE + (1 - DAY_SHARE) x night strength (the moon still
+-- counts by day, at DAY_SHARE of its night pull; no moon position API
+-- is used, so there is no moonrise/moonset or elevation term),
+-- read from the climate manager when the server accepts the request; a
+-- missing API reads 0 (no change). The buffer is added AFTER this cut, so
+-- missing Rage always costs its full seconds.
+WTAGarou.MoonLight = {
+    ENABLED = true,
+    MAX_REDUCTION = 0.25,                 -- full moon, clear night, exposed: -25% body time
+    DAY_SHARE = 0.5,                      -- the moon's pull at full daylight, as a share of its night pull
+    BASELINE_BONUS = 15,                  -- full exposure raises the drift/howl target by 15 Rage
+    OPENINGS = true,                      -- directly beside an exterior open door or uncovered window
+    FULL_MOON_FLOAT = 0.7,                -- ClimateMoon.getMoonFloat() at the full moon (0..0.7 scale)
+    PHASE_LIGHT = { [0] = 0.0, 0.2, 0.4, 0.5, 0.7, 0.5, 0.4, 0.2 },  -- fallback by phase id
+}
+-- 0.5.0: the Resolve skill (media/perks.txt, category Garou). Trained by
+-- resisting the forced change; a little by completing shifts. Levels widen
+-- the Crinos Rage buffer and unlock, then sharpen, the Crinos abilities.
+-- UNLOCK: the level at which the ability first works at all (existing
+-- characters start at 0 and must earn them; /garou resolve <n> for testing).
+WTAGarou.Resolve = {
+    PERK = "WTAGarou_Resolve",
+    MAX_LEVEL = 10,
+    RESIST_STEP_REDUCTION_PER_LEVEL = 0.1, -- 2 s at level 0 -> 1 s at level 10
+    RESIST_STEP_MIN = 1.0,                -- the existing logarithmic tail stays unchanged
+    BASELINE_PULL_BONUS_PER_LEVEL = 0.01, -- +1% per level, +10% at level 10
+    XP = {
+        -- Resisting: every third resist in one streak (the resist count resets
+        -- when Rage drops below 95 or the character reaches Crinos) earns
+        -- RESIST. The other resists earn RESIST_SINGLE, which uses the shift
+        -- cooldown below (nothing if it is still running).
+        RESIST = 8,               -- the third, sixth, ... resist in a streak
+        RESIST_STREAK = 3,
+        RESIST_SINGLE = 3,        -- the same amount as a shift
+        SHIFT = 3,                -- completed voluntary shift, any form
+        CRINOS_SHIFT = 5,         -- completed voluntary shift INTO Crinos
+        SHIFT_COOLDOWN_S = 60,    -- one shift reward per minute; forced shifts and cancels give nothing
+    },
+    -- The server grants XP (addXp / XP:AddXP). Flip if a hosted playtest
+    -- shows the client never receiving it: the server then only notifies and
+    -- the owning client applies the amount itself.
+    CLIENT_APPLIES_XP = false,
+    UNLOCK = { CROWD_CHARGE = 1, ROAR_STAGGER = 2, DOOR_CHARGE = 3 },
+    -- Step tables: the highest level key at or below the character's level wins.
+    CROWD_CHARGE_LIMIT = { [1] = 3, [5] = 4, [8] = 5 },  -- zombies knocked down per sprint
+    ROAR_FORCE = { [2] = 1.0, [6] = 1.5, [10] = 2.0 },   -- roar hit force (CrinosShiftBurst.HIT_FORCE scale, max 2)
+}
 defineTable("Howl", {
     -- 0.4.45: a howl pulls toward the character's baseline (WTAGarou.BaselineRage).
     RAGE_PER_TICK = 1.0,
@@ -1166,23 +1258,180 @@ function WTAGarou.SecondsToTicks(seconds)
     return math.max(1, math.floor((tonumber(seconds) or 1) * WTAGarou.TICKS_PER_SECOND))
 end
 
-function WTAGarou.ComputeTransformSeconds(currentRage, targetForm)
-    -- Crinos is a snap into berserk: a fixed short channel regardless of Rage.
-    if targetForm == "Crinos" and WTAGarou.TransformTime.CRINOS then
-        return WTAGarou.TransformTime.CRINOS
+-- 0.5.0: where the slow plateau sits. 50 unless CENTER_ON_BASELINE.
+function WTAGarou.CenterRage(data)
+    local max = tonumber(WTAGarou.Rage.MAX) or 100
+    if WTAGarou.TransformTime.CENTER_ON_BASELINE and data and WTAGarou.BaselineRage then
+        return tonumber(WTAGarou.BaselineRage(data)) or (max / 2)
     end
+    return max / 2
+end
+
+-- 0.5.0: additive per-pair seconds (TransformTime.PAIR / PAIR_BERZERKER).
+function WTAGarou.PairBaseSeconds(fromForm, targetForm, data)
     local T = WTAGarou.TransformTime
+    local key = tostring(fromForm or "?") .. ">" .. tostring(targetForm or "?")
+    if WTAGarou.IsBerserkerBreed and WTAGarou.IsBerserkerBreed(data) then
+        local v = T.PAIR_BERZERKER and tonumber(T.PAIR_BERZERKER[key])
+        if v then return v end
+    end
+    return (T.PAIR and tonumber(T.PAIR[key])) or 0
+end
+
+-- The body part of the channel: the plateau curve (or the Crinos snap) plus
+-- the pair offset. `data` is optional; without it the curve is centred on 50
+-- and no pair offset applies, exactly the pre-0.5.0 reading.
+function WTAGarou.ComputeTransformSeconds(currentRage, targetForm, data)
+    local T = WTAGarou.TransformTime
+    local pair = data and WTAGarou.PairBaseSeconds(data.form, targetForm, data) or 0
+    -- Crinos is a snap into berserk: a fixed short channel regardless of Rage.
+    if targetForm == "Crinos" and T.CRINOS then
+        return T.CRINOS + pair
+    end
     local max = tonumber(WTAGarou.Rage.MAX) or 100
     local r = math.max(0, math.min(max, tonumber(currentRage) or 0))
-    local mid = max / 2
+    local mid = WTAGarou.CenterRage(data)
     local dist = math.abs(r - mid)                       -- 0 at the middle, 50 at either end
     local plateau = tonumber(T.PLATEAU) or 5
-    local edge = mid - (tonumber(T.FULL_AT) or 20)       -- distance from the middle where FAST is reached
+    local edge = (max / 2) - (tonumber(T.FULL_AT) or 20) -- distance from the middle where FAST is reached
     local base, fast = tonumber(T.BASE) or 6.0, tonumber(T.FAST) or 1.0
-    if dist <= plateau then return base end
-    if dist >= edge or edge <= plateau then return fast end
+    if dist <= plateau then return base + pair end
+    if dist >= edge or edge <= plateau then return fast + pair end
     local t = (dist - plateau) / (edge - plateau)        -- 0 at the plateau edge, 1 at FULL_AT
-    return base - (base - fast) * t
+    return base - (base - fast) * t + pair
+end
+
+-- ---------------------------------------------------------------------------
+-- 0.5.0 Crinos Rage buffer, Resolve window and the full channel formula.
+-- ---------------------------------------------------------------------------
+-- Rage short of the Crinos entry floor (0 when at or above it, or for a
+-- Berzerker Origin, who has no floor beyond the cost).
+function WTAGarou.CrinosEntryShortfall(rage, data)
+    if WTAGarou.IsBerserkerBreed and WTAGarou.IsBerserkerBreed(data) then return 0 end
+    local need = WTAGarou.RageRequired("Crinos", data)
+    local cost = tonumber((WTAGarou.GetForm("Crinos") or {}).rageCost) or 0
+    if need <= cost then return 0 end
+    return math.max(0, need - (tonumber(rage) or 0))
+end
+
+-- Rage above the Crinos lock line while IN Crinos (0 otherwise).
+function WTAGarou.CrinosExitExcess(rage, data)
+    if not data or data.form ~= "Crinos" then return 0 end
+    local lock = WTAGarou.CrinosLockAbove and WTAGarou.CrinosLockAbove(data) or 75
+    return math.max(0, (tonumber(rage) or 0) - lock)
+end
+
+-- How far from a Crinos threshold a shift may still START, by Resolve level.
+function WTAGarou.ShiftBufferWidth(resolveLevel)
+    local S = WTAGarou.ShiftBuffer or {}
+    local lvl = math.max(0, math.floor(tonumber(resolveLevel) or 0))
+    return (tonumber(S.WIDTH) or 6) + (tonumber(S.PER_RESOLVE_LEVEL) or 0) * lvl
+end
+
+-- Seconds the buffer adds for a given distance (one per Rage, capped).
+function WTAGarou.ShiftBufferSeconds(distance)
+    local S = WTAGarou.ShiftBuffer or {}
+    local d = math.max(0, tonumber(distance) or 0)
+    return math.min(tonumber(S.MAX_SECONDS) or 6, d)
+end
+
+-- May this character START a voluntary shift to `target` right now?
+-- Returns ok, reason ("not_enough_rage" / "crinos_locked"), info table
+-- { shortfall, excess, distance, bufferSeconds, width }.
+function WTAGarou.ShiftAdmission(data, target, resolveLevel)
+    data = data or {}
+    local rage = tonumber(data.rage) or 0
+    local fd = WTAGarou.GetForm(target) or {}
+    local cost = tonumber(fd.rageCost) or 0
+    local width = WTAGarou.ShiftBufferWidth(resolveLevel)
+    local shortfall = (target == "Crinos") and WTAGarou.CrinosEntryShortfall(rage, data) or 0
+    local excess = WTAGarou.CrinosExitExcess(rage, data)
+    local info = { shortfall = shortfall, excess = excess, distance = shortfall + excess,
+                   bufferSeconds = WTAGarou.ShiftBufferSeconds(shortfall + excess), width = width }
+    -- The destination's own cost is never buffered: a shift must be payable.
+    if rage < cost then return false, "not_enough_rage", info end
+    if target == "Crinos" then
+        if shortfall > width then return false, "not_enough_rage", info end
+    else
+        -- Glabro/Hispo (floor = cost) and the free forms: the ordinary floor, no buffer.
+        if rage < WTAGarou.RageRequired(target, data) then return false, "not_enough_rage", info end
+    end
+    if excess > width then return false, "crinos_locked", info end
+    return true, nil, info
+end
+
+-- Channel multiplier for a moonlight exposure of 0..1.
+function WTAGarou.MoonLightMultiplier(exposure)
+    local M = WTAGarou.MoonLight or {}
+    if M.ENABLED == false then return 1 end
+    local e = math.max(0, math.min(1, tonumber(exposure) or 0))
+    return 1 - (tonumber(M.MAX_REDUCTION) or 0) * e
+end
+
+-- The whole voluntary channel:
+--   T = max(MIN_SECONDS, (pair + curve) * (1 - MAX_REDUCTION * exposure)) + buffer
+-- opts = { resolveLevel = n, exposure = 0..1 }. Returns seconds and a
+-- breakdown { body, pair, moon, buffer, exposure }.
+function WTAGarou.ShiftSeconds(data, target, opts)
+    opts = opts or {}
+    data = data or {}
+    local T = WTAGarou.TransformTime
+    local body = WTAGarou.ComputeTransformSeconds(data.rage or 0, target, data)
+    local moon = WTAGarou.MoonLightMultiplier(opts.exposure)
+    local lit = math.max(tonumber(T.MIN_SECONDS) or 0.25, body * moon)
+    local shortfall = (target == "Crinos") and WTAGarou.CrinosEntryShortfall(data.rage or 0, data) or 0
+    local excess = WTAGarou.CrinosExitExcess(data.rage or 0, data)
+    local buffer = WTAGarou.ShiftBufferSeconds(shortfall + excess)
+    return lit + buffer, { body = body, pair = WTAGarou.PairBaseSeconds(data.form, target, data),
+        moon = moon, buffer = buffer, exposure = tonumber(opts.exposure) or 0 }
+end
+
+-- Resolve helpers (pure): the highest step key at or below the level.
+local function boundedResolveLevel(level)
+    return math.max(0, math.min(WTAGarou.Resolve.MAX_LEVEL or 10,
+        math.floor(tonumber(level) or 0)))
+end
+function WTAGarou.ResolveResistStep(level)
+    local R = WTAGarou.Resolve
+    local base = (WTAGarou.Rage.RESIST or {}).LINEAR_STEP or 2
+    return math.max(R.RESIST_STEP_MIN or 1,
+        base - boundedResolveLevel(level) * (R.RESIST_STEP_REDUCTION_PER_LEVEL or 0))
+end
+
+-- Boost passive contentment only, not howl or the baseline target. Cap the
+-- TOTAL pull (not just the bonus) below the character's initial Crinos drain.
+-- Initial drain is the conservative bound: escalation only makes it stronger.
+function WTAGarou.ResolveBaselinePull(pull, level, data)
+    local lvl = boundedResolveLevel(level)
+    local base = math.max(0, tonumber(pull) or 0)
+    if lvl == 0 or base == 0 then return base end
+    local boosted = base * (1 + lvl * (WTAGarou.Resolve.BASELINE_PULL_BONUS_PER_LEVEL or 0))
+    local drain = math.max(0, -WTAGarou.CrinosDrainPerSecond(data, 0))
+    return math.min(boosted, drain * 0.95)
+end
+
+function WTAGarou.ResolveStep(steps, level, default)
+    local lvl = math.floor(tonumber(level) or 0)
+    local best, value = nil, default
+    for k, v in pairs(steps or {}) do
+        local key = tonumber(k)
+        if key and key <= lvl and (best == nil or key > best) then best, value = key, v end
+    end
+    return value
+end
+function WTAGarou.ResolveUnlocked(level, key)
+    local need = (WTAGarou.Resolve.UNLOCK or {})[key]
+    if need == nil then return true end
+    return (math.floor(tonumber(level) or 0)) >= need
+end
+function WTAGarou.ResolveCrowdChargeLimit(level)
+    if not WTAGarou.ResolveUnlocked(level, "CROWD_CHARGE") then return 0 end
+    return tonumber(WTAGarou.ResolveStep(WTAGarou.Resolve.CROWD_CHARGE_LIMIT, level, 3)) or 3
+end
+function WTAGarou.ResolveRoarForce(level)
+    if not WTAGarou.ResolveUnlocked(level, "ROAR_STAGGER") then return 0 end
+    local f = tonumber(WTAGarou.ResolveStep(WTAGarou.Resolve.ROAR_FORCE, level, 1.0)) or 1.0
+    return math.max(0.1, math.min(2, f))
 end
 
 -- Rage needed to START a shift (Crinos needs 55 but only spends 10).
@@ -1360,6 +1609,10 @@ WTAGarou.Delirium = {
 -- Mesh replacement is a SEPARATE experiment. A wolf mesh does not select an
 -- animal animation controller, and Java scaling does not solve that mismatch.
 WTAGarou.EnableJavaScale = true
+-- Fraction of the size difference reached by the end of a shift channel.
+-- 0.50 = halfway, 0.75 = three quarters, 1.00 = target size. Range: 0 to 1.
+-- Edit the installed mod, then Reload defs; applies to the next shift.
+WTAGarou.ShiftScaleFraction = 0.75
 WTAGarou.EnableModelSwap = false
 -- Direct Java body/clip prototype. No HumanVisual getter, mount, or IsoAnimal.
 -- Enabled for this development-branch playtest; /garou wolf off is the escape.

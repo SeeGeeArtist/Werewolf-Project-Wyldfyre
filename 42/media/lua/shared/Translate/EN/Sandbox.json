@@ -1,0 +1,5 @@
+{
+    "Sandbox_WTAGarou": "Werewolf: Project Wyldfyre",
+    "Sandbox_WTAGarou_AllowWerewolfOptIn": "Allow existing-character werewolf opt-in",
+    "Sandbox_WTAGarou_AllowWerewolfOptIn_tooltip": "Offer each non-werewolf character a one-time choice to become a werewolf for free. Includes Cat's Eyes, Fast Healer and Hearty Appetite. Also allows /garou trait for ordinary players. Admin/debug grants remain available when disabled."
+}

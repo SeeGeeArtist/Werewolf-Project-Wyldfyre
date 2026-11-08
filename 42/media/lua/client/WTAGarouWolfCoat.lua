@@ -122,9 +122,9 @@ function WTAGarouCoatWindow:createChildren()
         button:setTooltip(Coat.auspiceTooltip(auspice))
         self.auspiceButtons[#self.auspiceButtons+1]=button
     end
-    self.confirmButton=ISButton:new(16,self.confirmY,308,30,"Confirm true form, coat and baseline Rage",self,WTAGarouCoatWindow.confirm)
+    self.confirmButton=ISButton:new(16,self.confirmY,308,30,"Confirm Origin, coat and baseline Rage",self,WTAGarouCoatWindow.confirm)
     self.confirmButton:initialise(); self:addChild(self.confirmButton)
-    self.confirmButton:setTooltip("Locks your true form, coat and baseline Rage for this character. Wolf gear stays changeable.")
+    self.confirmButton:setTooltip("Locks your Origin form, coat and baseline Rage for this character. Wolf gear stays changeable.")
     self.gearButtons={}
     for i,key in ipairs({"Black","Camo"}) do
         local button=ISButton:new(16+(i-1)*156,self.gearY,150,30,key,self,WTAGarouCoatWindow.chooseGear)
@@ -149,7 +149,7 @@ function WTAGarouCoatWindow:refreshLock()
     local locked=self.locked==true
     for _,b in ipairs(self.trueButtons or {}) do
         b.enable=not locked
-        if locked then b:setTooltip("Locked in. Your true form was confirmed.") end
+        if locked then b:setTooltip("Locked in. Your Origin was confirmed.") end
     end
     for _,b in ipairs(self.coatButtons or {}) do
         if locked then b.enable=false; b:setTooltip("Locked in. Your coat was confirmed.") end
@@ -175,10 +175,10 @@ end
 function WTAGarouCoatWindow:prerender()
     ISCollapsableWindow.prerender(self)
     if self.locked then
-        self:drawText("True form and coat are locked in.",16,31,0.8,0.8,0.8,1,UIFont.Small)
+        self:drawText("Origin and coat are locked in.",16,31,0.8,0.8,0.8,1,UIFont.Small)
         self:drawText("Coat (locked)",16,101,0.8,0.8,0.8,1,UIFont.Small)
     else
-        self:drawText("True form: starting / zero-Rage form.",16,31,1,1,1,1,UIFont.Small)
+        self:drawText("Origin: starting / zero-Rage form.",16,31,1,1,1,1,UIFont.Small)
         self:drawText("Coat: pick one, then Confirm below.",16,101,1,1,1,1,UIFont.Small)
     end
     if self.auspiceLocked then
@@ -261,7 +261,7 @@ function WTAGarouCoatWindow:confirm()
     if self.locked then
         text=string.format("Are you sure?\n\nBaseline Rage: %d (%s)\n\nThis locks for this character.",a.baseline,a.moon)
     else
-        text=string.format("Are you sure?\n\nTrue form: %s\nCoat: %s\nBaseline Rage: %d (%s)\n\nThese lock for this character. Wolf gear can still be changed.",
+        text=string.format("Are you sure?\n\nOrigin: %s\nCoat: %s\nBaseline Rage: %d (%s)\n\nThese lock for this character. Wolf gear can still be changed.",
             WTAGarou.TrueFormLabel(self.trueForm),WTAGarou.WolfCoats[self.coat].label,a.baseline,a.moon)
     end
     if ISModalDialog then

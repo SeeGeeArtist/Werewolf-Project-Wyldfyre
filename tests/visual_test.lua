@@ -57,6 +57,9 @@ local function player(garou)
     return p
 end
 dofile(root .. "/42/media/lua/client/WTAGarouVisual.lua")
+-- 0.5.0: the crowd charge is a Resolve ability. Tests drive the level directly.
+local resolveLevel = 1
+WTAGarou.ResolveLevelOf = function() return resolveLevel end
 local p, p2, normal = player(true), player(true), player(false)
 getPlayer = function() return p end
 local refresh = WTAGarou.Visual.refresh
@@ -75,6 +78,21 @@ local count, crowdCount = javaCalls, crowdCalls
 for _ = 1,100 do refresh(p, false) end
 check(javaCalls == count, "no repeated Java setter on unchanged form")
 check(crowdCalls == crowdCount, "crowd-charge rule pushed once per form change")
+-- 0.5.0: Resolve gates and grows the charge; a level change re-pushes the rule.
+p.data.WTAGarou.form = "Crinos"
+resolveLevel = 0; refresh(p, false)
+check(crowd[p][1] == 0 and crowd[p][2] == 3.0, "Resolve 0: Crinos crowd charge locked (limit 0)")
+resolveLevel = 5; refresh(p, false)
+check(crowd[p][1] == 4, "Resolve 5: four knockdowns per sprint")
+resolveLevel = 8; refresh(p, false)
+check(crowd[p][1] == 5, "Resolve 8: five knockdowns per sprint")
+resolveLevel = 10; refresh(p, false)
+check(crowd[p][1] == 5, "Resolve 10: still five (no step above 8)")
+local pushedAt = crowdCalls
+refresh(p, false); refresh(p, false)
+check(crowdCalls == pushedAt, "unchanged level and form: no re-push")
+resolveLevel = 1
+p.data.WTAGarou.form = "Lupus"; refresh(p, false)   -- back to the loop's last form
 p2.data.WTAGarou.form = "Crinos"
 refresh(p2, false)
 check(javaScales[p2] == 1.65 and javaScales[p] == 1.15, "distinct objects with same onlineID")
@@ -140,4 +158,32 @@ validType = true
 Events.OnNewGame.handlers[1](p)
 check(adds == 0, "0.4.22: the Wolf Panniers container is retired; nothing is granted")
 check(p.data.WTAGarou_StartingGearGranted == true, "grant flag still set so old logic stays idempotent")
+-- The existing refresh is the sole scale writer; it must not overwrite a
+-- transition on clothing/forced refreshes or spam a log every frame.
+local S, owner, clock = WTAGarou.ShiftScale, {}, 100
+getTimestampMs=function() return clock * 1000 end
+p.dead=false
+p.data.WTAGarou.form="Homid"
+WTAGarou.EnableJavaScale=true
+S.start(p,owner,"Homid","Crinos")
+S.progress(p,owner,0.5)
+local oldPrint, logs = print, 0
+print=function() logs=logs+1 end
+refresh(p,true)
+check(math.abs(javaScales[p]-1.24375)<0.000001,"forced refresh preserves channel scale")
+logs=0
+for i=1,20 do S.progress(p,owner,i/20); refresh(p,false) end
+check(logs==0,"interpolation does not log every frame")
+print=oldPrint
+check(math.abs(javaScales[p]-1.4875)<0.000001,"visual refresh applies endpoint")
+S.cancel(p,owner)
+clock=clock+0.5; refresh(p,false)
+check(math.abs(javaScales[p]-1.24375)<0.000001,"visual refresh animates cancellation")
+clock=clock+0.5; refresh(p,false)
+check(javaScales[p]==1,"visual refresh ends cancellation at base scale")
+S.start(p,owner,"Homid","Crinos")
+S.progress(p,owner,1)
+p.dead=true; refresh(p,false)
+local _,active=S.value(p,"Homid",1)
+check(javaScales[p]==nil and not active,"death clears transient scale and Java override")
 print("PASS: " .. checks .. " Lua assertions.")

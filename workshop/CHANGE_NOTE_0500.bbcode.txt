@@ -1,0 +1,36 @@
+[h2]0.5.0 - The Resolve Update[/h2]
+Lua-only update. The Java module and its signature are unchanged, so ZombieBuddy will not ask for a new approval.
+
+[h3]New skill: Resolve[/h3]
+Your control over the Rage, in its own "Werewolf" section of the skills panel.
+[list]
+[*]Train it by shifting, or by resisting the forced change into Crinos at 100 Rage. Every third resist in a row gives the most XP.
+[*]Every level widens the Crinos Rage window, makes each resist shorten the next countdown a little less, and helps a fed, watered Garou settle back to baseline Rage a little faster.
+[*]Level 1 unlocks the zombie charge, level 2 the roar stagger, level 3 the door charge. Later levels make them stronger.
+[*]Hover a level in the skills panel to see what it gives.
+[/list]
+Existing characters start at Resolve 0, so the zombie charge, roar stagger and door charge must be earned again.
+
+[h3]Moonlight[/h3]
+[list]
+[*]Moonlight on your skin speeds up shifting and raises your baseline Rage, most under a clear full moon at night.
+[*]Outdoors counts, and so does standing next to an open exterior door, an empty doorway or an open window. Roofs and covered porches block it.
+[/list]
+
+[h3]Shift visuals[/h3]
+Your model gradually grows or shrinks toward the next form's size while you channel a shift. Cancelling returns it smoothly to its original size.
+
+[h3]Existing characters can become werewolves[/h3]
+Characters without the Werewolf trait get a one-time Yes/No offer when the world loads. Server owners can turn this off in the sandbox options. Not yet tested on dedicated servers.
+
+[h3]Other changes and fixes[/h3]
+[list]
+[*]Garou can eat fresh raw food without getting sick. Rotten, tainted or poisoned food still hurts.
+[*]The Wyrm Infection line in the health panel wraps instead of widening the panel.
+[*]"True form" is now called "Origin".
+[*]Resolve XP shows the correct amount in the skills panel.
+[*]Fixed console errors near doorways on Build 42.21.
+[/list]
+
+[h3]Known issue[/h3]
+Some players report the Werewolf trait not appearing in character creation, or removing itself. This is likely a conflict with another trait mod. Use the existing-character offer for now, and please send your enabled mod list if it happens to you.

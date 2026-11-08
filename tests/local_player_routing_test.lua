@@ -52,9 +52,18 @@ package.loaded.WTAGarouTrueForms=true
 require "WTAGarouClient"
 N.ToClient(a,"RageSync",{rage=21,form="Glabro"})
 N.ToClient(b,"RageSync",{rage=73,form="Hispo"})
+check(panels[a].refreshes==1 and panels[b].refreshes==1,"each response refreshes its own panel")
+N.ToClient(a,"RageSync",{moonExposure=1})
+check(a.data.WTAGarou.moonExposure==1 and b.data.WTAGarou.moonExposure==0,
+    "moon exposure reaches only the intended local player")
+check(WTAGarou.EffectiveBaselineRage(a.data.WTAGarou)==65,"client derives moon-adjusted baseline")
+N.ToClient(a,"RageSync",{moonExposure=0})
+check(WTAGarou.EffectiveBaselineRage(a.data.WTAGarou)==50,"zero exposure clears old white marker position")
+N.ToClient(a,"RageSync",{moonExposure=0.5})
+N.ToClient(a,"RageSync",{})
+check(a.data.WTAGarou.moonExposure==0,"older server without moon field cannot leave stale bonus")
 check(a.data.WTAGarou.rage==21 and a.data.WTAGarou.form=="Glabro","direct reply for first player despite ambient second")
 check(b.data.WTAGarou.rage==73 and b.data.WTAGarou.form=="Hispo","direct reply for second player")
-check(panels[a].refreshes==1 and panels[b].refreshes==1,"each response refreshes its own panel")
 local coatRecipient
 WTAGarou.WolfCoat={receive=function(args,p) coatRecipient=p end}
 N.ToClient(a,"WolfCoatSelected",{coat="black"})
@@ -112,4 +121,25 @@ check(sent.p==b and sent.command=="TransformRequest" and sent.args.form=="Hispo"
     "online input still goes through native sendClientCommand(player), no local state mutation")
 Events.handler("WTAGarou","HowlStarted",{ownerID=999})
 check(broadcasts==3,"remote howl broadcast unaffected by recipient routing")
+-- Exercise the real client message handler, not just the scale helper.
+require "WTAGarouShiftScale"
+local S, clock = WTAGarou.ShiftScale, 100
+getTimestampMs=function() return clock*1000 end
+for _,p in ipairs({a,b}) do
+    p.data.WTAGarou.form="Homid"
+    S.start(p,p,"Homid","Crinos")
+    S.finish(p,p)
+end
+Events.handler("WTAGarou","TransformDenied",{reason="reservation_expired",_wtaRecipientID=31})
+clock=clock+1
+check(S.value(a,"Homid",1)==1,"denied completion starts recovery for its recipient")
+check(math.abs(S.value(b,"Homid",1)-1.4875)<0.000001,"other player's pending effect is untouched")
+Events.handler("WTAGarou","TransformCompleted",{form="Crinos",_wtaRecipientID=84})
+local scale,active=S.value(b,"Crinos",1.65)
+check(scale==1.65 and not active,"server completion clears effect and uses full form scale")
+S.start(a,a,"Homid","Hispo")
+S.progress(a,a,0.5)
+Events.handler("WTAGarou","TransformForced",{form="Homid",_wtaRecipientID=31})
+scale,active=S.value(a,"Homid",1)
+check(scale==1 and not active,"forced same-form reply also clears effect")
 print("PASS: "..checks.." local/online multi-player recipient-routing assertions.")

@@ -1,8 +1,10 @@
 -- WTAGarou 0.4.4: independent scaling plus direct Java body/clip prototype.
 require "WTAGarouDefinitions"
+require "WTAGarouResolve"
 require "WTAGarouWolfCoats"
 require "WTAGarouWolfGear"
 require "WTAGarouCrinosAttack"
+require "WTAGarouShiftScale"
 WTAGarou.Visual = WTAGarou.Visual or {}
 local Visual = WTAGarou.Visual
 
@@ -510,7 +512,7 @@ local function javaReady()
     return WTAGarouJava and WTAGarouJava.setScale and WTAGarouJava.clear
 end
 
-local function applyScale(player, value, force)
+local function applyScale(player, value, force, quiet)
     if not javaReady() then
         if not warnedJava then
             warnedJava = true
@@ -521,7 +523,7 @@ local function applyScale(player, value, force)
     if not force and scales[player] == value then return end
     if WTAGarouJava.setScale(player, value) then
         scales[player] = value
-        print("[WTAGarou] Java scale requested=" .. tostring(value))
+        if not quiet then print("[WTAGarou] Java scale requested=" .. tostring(value)) end
     end
 end
 
@@ -584,6 +586,7 @@ end
 
 function Visual.clear(player)
     if not player then return end
+    WTAGarou.ShiftScale.clear(player)
     WTAGarou.CrinosAttack.clear(player)
     if javaReady() then WTAGarouJava.clear(player) end
     scales[player] = nil
@@ -624,8 +627,10 @@ function Visual.refresh(player, force)
         else WTAGarouJava.setWolfCoat(player,coat) end
     end
     if WTAGarou.EnableJavaScale then
-        applyScale(player, fd.modelScale or 1.0, force)
+        local scale, changing = WTAGarou.ShiftScale.value(player, form, fd.modelScale or 1.0)
+        applyScale(player, scale, force, changing)
     elseif javaReady() then
+        WTAGarou.ShiftScale.clear(player)
         if WTAGarouJava.clearScale then WTAGarouJava.clearScale(player)
         else WTAGarouJava.clear(player) end
         scales[player] = nil
@@ -680,8 +685,11 @@ function Visual.refresh(player, force)
         end
     end
     -- 0.4.69: crowd charge (sprinting knocks down the first zombies in the way).
+    -- 0.5.0: locked until Resolve.UNLOCK.CROWD_CHARGE; the limit grows with the
+    -- level. The level is part of the key, so a level-up re-pushes the rule.
     if WTAGarouJava and WTAGarouJava.setCrowdCharge then
-        local limit, window = WTAGarou.CrowdChargeFor(form)
+        local level = WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(player) or 0
+        local limit, window = WTAGarou.CrowdChargeFor(form, level)
         local key = limit .. ":" .. window
         if crowdRules[player] ~= key or force then
             local ok, err = pcall(function() WTAGarouJava.setCrowdCharge(player, limit, window) end)

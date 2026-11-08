@@ -94,9 +94,9 @@ function T.buildPages()
                .. F(glabro .. ":") .. "bigger, stronger, still passes at a distance. <LINE>"
                .. F(crinos .. ":") .. "the war form. Needs " .. need .. kw("Rage,", "rage") .. "burns 1"
                .. kw("Rage", "rage") .. "a second (one more each 90 seconds you hold it) and throws you back to human at 0. Double melee damage, "
-               .. "shrugs off most flinches. Sprint into a closed wooden door to smash it (12"
-               .. kw("Rage,", "rage") .. "18 if locked, plus stamina). Sprint into zombies and the first three go down "
-               .. "under you; a fourth inside a few seconds stops the charge. <LINE>"
+               .. "shrugs off most flinches. With" .. kw("Resolve", "lore") .. "(see its page) a sprint knocks the first zombies down "
+               .. "under you, the Q roar staggers the pack, and a sprint into a closed wooden door smashes it (12"
+               .. kw("Rage,", "rage") .. "18 if locked, plus stamina). <LINE>"
                .. F(hispo .. ":") .. "the dire wolf. Fast, tough, wears its bags as saddlebags. <LINE>"
                .. F(lupus .. ":") .. "a true wolf. Quiet, quick, harmless-looking." },
         { title = "Paws, jaws and vehicles",
@@ -111,16 +111,38 @@ function T.buildPages()
           body  = B .. kw("Rage", "rage") .. "is situational. Fear, stress, pain and taking damage raise it. "
                .. "Dealing damage spends it. Being fed and watered, or howling, settles it toward your" .. kw("baseline", "rage")
                .. "(30 to 70, chosen once on the" .. kw("Startup", "action") .. "panel). Sadness, exhaustion and drowsiness drain it to 0. "
-               .. "Every bad moodle level widens a band around the baseline where that settling runs at half speed. <LINE> <LINE> "
-               .. "Shifts channel for six seconds near the middle of the bar (45 to 55" .. kw("Rage)", "rage")
-               .. "and quicken toward either end: at 20 or 80" .. kw("Rage", "rage") .. "and beyond, any shift but"
-               .. kw(crinos, "war") .. "takes one second. <LINE> <LINE> "
+               .. "Bad moodles widen a band where settling runs at half speed. <LINE> <LINE> "
+               .. "The yellow marker keeps your chosen baseline. Moon exposure raises the actual baseline by up to 15: "
+               .. "the white marker and yellow bracket follow it. At zero exposure, yellow covers white. "
+               .. "The moon moves the target, not your current Rage instantly. See Shifting time for channel rules. <LINE> <LINE> "
                .. "At 100" .. kw("Rage", "rage") .. "the beast takes over: after a countdown you are forced into"
                .. kw(crinos .. ".", "war")
                .. kw("Strip", "action") .. "before that if you want to keep your clothes. <LINE> <LINE>"
                .. kw("Resist", "action") .. "(panel button, radial slice next to Howl, or a key you bind) stops the countdown. "
                .. "Every" .. kw("Resist", "action") .. "makes the next countdown shorter, and the urge comes back after a while "
                .. "for as long as" .. kw("Rage", "rage") .. "stays over 95. Calm down or give in." },
+        { title = "Shifting time",
+          body  = B .. " How long a shift channels, in order: <LINE>"
+               .. kw("Body:", "lore") .. "six seconds on the plateau (45 to 55" .. kw("Rage),", "rage")
+               .. "sliding to one second by 20 or 80." .. kw(crinos, "war") .. "is always a one-second snap in. <LINE>"
+               .. kw("Moon:", "lore") .. "cuts body time up to 25% at night, half that by day. Cloud and fog weaken it. "
+               .. "Unroofed outside or beside an exterior open door, empty doorway or uncovered window counts. "
+               .. "Roofed porches block it; so does being deeper indoors. <LINE>"
+               .. kw("Buffer:", "lore") .. "only" .. kw(crinos, "war") .. "has one. You may start the change up to six"
+               .. kw("Rage", "rage") .. "short of the 55 it needs, or up to six over the 75 that holds you in (55 for a Metis); "
+               .. "every point of distance adds one second, after the moon has had its say. Beyond the window the Rage refuses. "
+               .. "The change still costs its usual 10. <LINE>" .. kw("Resolve", "lore") .. "widens that window by one"
+               .. kw("Rage", "rage") .. "per level; the added time never passes six seconds. <LINE>"
+               .. F(glabro) .. "and" .. F(hispo) .. "cost 20 and simply wait for it. Everything is read when the shift starts, not during it." },
+        { title = "Resolve",
+          body  = B .. kw("Resolve", "lore") .. "is the Garou skill of holding the Rage. It appears on the skills panel under Garou. <LINE>"
+               .. kw("Training:", "lore") .. "each" .. kw("Resist", "action") .. "that stops a forced-change countdown trains it most. "
+               .. "A completed shift of your own choosing adds a little, at most once a minute. Forced changes and cancelled shifts teach nothing. <LINE>"
+               .. kw("Level 1:", "lore") .. "the" .. kw(crinos, "war") .. "sprint knocks down the first three zombies in its way (four at 5, five at 8). <LINE>"
+               .. kw("Level 2:", "lore") .. "the Q roar staggers the pack; it hits harder at 6 and 10. <LINE>"
+               .. kw("Level 3:", "lore") .. "a sprint smashes closed wooden doors. <LINE>"
+               .. kw("Every level:", "lore") .. "the" .. kw(crinos, "war") .. "Rage buffer widens by one point. <LINE> <LINE> "
+               .. "Characters from before this update start at 0 and earn these back." },
         { title = "Clothes, Strip and Dress",
           body  = B .. " Beast forms tear whatever you wear." .. kw("Strip", "action") .. "takes it all off first,"
                .. kw("Dress", "action") .. "puts the same items back on from your bags or the floor nearby. "

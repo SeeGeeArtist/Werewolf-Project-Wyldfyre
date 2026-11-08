@@ -13,6 +13,7 @@ require "WTAGarouNet"
 require "WTAGarouGrant"
 require "WTAGarouAudio"
 require "WTAGarouLocalPlayers"
+require "WTAGarouEnrollment"
 
 -- 0.4.22: silver contact also flashes over the head (vanilla halo text, the
 -- same channel as "Bandaged" / "Full"), light blue-grey like the health line.
@@ -161,6 +162,10 @@ local function handleServerCommand(module, command, args, directPlayer)
 
     local player = WTAGarou.Net.ClientPlayer(args, directPlayer)
     if not player then return end
+    if command == "WerewolfEnrollment" then
+        WTAGarou.Enrollment.receive(player, args)
+        return
+    end
     local hud=WTAGarou.HUDFor(player)
     if WTAGarou.Grant and command == WTAGarou.Grant.REPLY then
         -- 0.4.66: the server made the kit items (MP inventories are server-owned)
@@ -184,6 +189,9 @@ local function handleServerCommand(module, command, args, directPlayer)
         if args.silver ~= nil then d.silverBurns = args.silver end   -- 0.4.22
         if args.lodged ~= nil or isClient() then d.silverLodged = args.lodged end   -- 0.4.76 (nil = nothing lodged)
         if args.bracket ~= nil then d.bracketHalfWidth = tonumber(args.bracket) end   -- 0.4.69 HUD
+        -- Zero explicitly clears the previous outdoor value. Old servers
+        -- without the field also clear it rather than reuse saved exposure.
+        d.moonExposure = tonumber(args.moonExposure) or 0
         if WTAGarou.ValidTrueForm(args.trueForm) then d.trueForm=args.trueForm end
         if args.identityLocked ~= nil then d.identityLocked = args.identityLocked == true or nil end
         -- 0.4.45 auspice / baseline Rage (nil = not chosen yet).
@@ -231,6 +239,14 @@ local function handleServerCommand(module, command, args, directPlayer)
             hud:clearCrinosCountdown()
             hud:flashDenial("frenzy_forced")
         end
+        -- 0.5.0: the Rage buffer bought this shift at a price in seconds.
+        if not args.forced and hud and hud.pushNotice and (tonumber(args.buffer) or 0) > 0 then
+            if (tonumber(args.shortfall) or 0) > 0 then
+                hud:pushNotice(string.format("You reach for Rage you do not quite have. +%.0f s.", tonumber(args.buffer)))
+            else
+                hud:pushNotice(string.format("The Rage clings to you. +%.0f s.", tonumber(args.buffer)))
+            end
+        end
         if WTAGarou.Channel then
             WTAGarou.Channel.startChannel(
                 player,
@@ -267,6 +283,7 @@ local function handleServerCommand(module, command, args, directPlayer)
         end
         local d = WTAGarou.GetData(player)
         d.form = args.form or d.form
+        if WTAGarou.ShiftScale then WTAGarou.ShiftScale.clear(player) end
         if hud then
             hud:clearCrinosCountdown()
             hud:clearChannelling()
@@ -349,6 +366,33 @@ local function handleServerCommand(module, command, args, directPlayer)
 
     -- 0.4.21 Resist outcome: the panel says what happened; the hidden rest
     -- interval is never shown (only the next countdown length is).
+    -- 0.5.0: Resolve. The server validated the XP; the client applies it only
+    -- when Resolve.CLIENT_APPLIES_XP is set, otherwise this is just the notice.
+    if command == "ResolveXP" then
+        local R = WTAGarou.Resolve
+        if R and R.applyOnClient then R.applyOnClient(player, args.amount) end
+        if hud and hud.pushNotice and (tonumber(args.amount) or 0) > 0 then
+            local what = ({ RESIST = "You held the Rage down.", RESIST_SINGLE = "You held the Rage down.", CRINOS_SHIFT = "The change obeyed you.",
+                            SHIFT = "The change obeyed you." })[tostring(args.kind)] or "Resolve."
+            hud:pushNotice(string.format("%s Resolve +%d.", what, tonumber(args.amount)))
+        end
+        return
+    end
+    if command == "ResolveSetLevel" then
+        local R = WTAGarou.Resolve
+        local ok = R and R.setLevel and R.setLevel(player, args.level)
+        if hud and hud.pushNotice then
+            hud:pushNotice(string.format("Resolve level %s%s.", tostring(args.level), ok and "" or " (could not set the perk; is perks.txt loaded?)"))
+        end
+        return
+    end
+    -- 0.5.0: the roar was heard but had no weight behind it yet.
+    if command == "CrinosRoarResult" then
+        if args.reason == "no_resolve" and hud and hud.flashDenial then
+            hud:flashDenial(string.format("Your roar is only noise. Resolve %s needed to stagger.", tostring(args.need or 2)))
+        end
+        return
+    end
     if command == "ResistResult" then
         local hud = WTAGarou.HUDFor(player)
         if args.ok then
@@ -404,6 +448,7 @@ local function handleServerCommand(module, command, args, directPlayer)
     end
 
     if command == "TransformDenied" then
+        if WTAGarou.ShiftScale then WTAGarou.ShiftScale.denied(player) end
         if WTAGarou.TestPanel then
             WTAGarou.TestPanel.notify("Shift denied: " .. tostring(args.reason))
         end

@@ -1,0 +1,36 @@
+VERSION = 1,
+
+perk WTAGarou_Garou
+{
+	parent = None,
+	translation = WTAGarou_Garou,
+	passive = false,
+	xp1 = 0,
+	xp2 = 0,
+	xp3 = 0,
+	xp4 = 0,
+	xp5 = 0,
+	xp6 = 0,
+	xp7 = 0,
+	xp8 = 0,
+	xp9 = 0,
+	xp10 = 0,
+}
+
+perk WTAGarou_Resolve
+{
+	parent = WTAGarou_Garou,
+	name = WTAGarou_Resolve,
+	translation = WTAGarou_Resolve,
+	passive = false,
+	xp1 = 50,
+	xp2 = 100,
+	xp3 = 200,
+	xp4 = 350,
+	xp5 = 550,
+	xp6 = 800,
+	xp7 = 1100,
+	xp8 = 1500,
+	xp9 = 2000,
+	xp10 = 2600,
+}

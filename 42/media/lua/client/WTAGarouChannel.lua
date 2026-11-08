@@ -14,6 +14,7 @@ WTAGarou = WTAGarou or {}
 
 require "WTAGarouNet"
 require "WTAGarouLocalPlayers"
+require "WTAGarouShiftScale"
 WTAGarou.Channel = WTAGarou.Channel or {}
 
 local function channelLog(message)
@@ -108,6 +109,7 @@ end
 
 function WTAGarouTransformAction:start()
     self.shiftStarted = true
+    WTAGarou.ShiftScale.start(self.character, self, self.previousForm, self.targetForm)
     -- HARD CONTRACT: literal nil, nil, not "None", "", an enum or a fallback.
     local ok, err = pcall(function() self:setActionAnim(nil, nil) end)
     channelLog("shift action anim: nil, nil ok=" .. tostring(ok) ..
@@ -142,6 +144,9 @@ function WTAGarouTransformAction:update()
     -- Only called while this shift owns the timed action. Do not repeatedly
     -- call setActionAnim here: that setter is what enables the action layer.
     suppressShiftPose(self.character)
+    if self.shiftStarted and self.action then
+        WTAGarou.ShiftScale.progress(self.character, self, self:getJobDelta())
+    end
     -- 0.4.19: the channel cue repeats for as long as the channel lasts.
     if self.shiftStarted and WTAGarou.ShiftSoundsRuntime and WTAGarou.ShiftSoundsRuntime.onChannelTick then
         pcall(WTAGarou.ShiftSoundsRuntime.onChannelTick, self.character)
@@ -163,6 +168,7 @@ local function clearShiftVars(character)
 end
 
 function WTAGarouTransformAction:stop()
+    WTAGarou.ShiftScale.cancel(self.character, self)
     forceSneak(self, false)
     clearShiftVars(self.character)
     endShiftCue(self.character)
@@ -184,6 +190,7 @@ function WTAGarouTransformAction:forceCancel()
     -- A queued action may be cancelled before it starts. Do not clear
     -- another action's animation variables in that case.
     if self.shiftStarted then
+        WTAGarou.ShiftScale.cancel(self.character, self)
         forceSneak(self, false)
         clearShiftVars(self.character)
         endShiftCue(self.character)
@@ -201,6 +208,7 @@ function WTAGarouTransformAction:forceCancel()
 end
 
 function WTAGarouTransformAction:perform()
+    WTAGarou.ShiftScale.finish(self.character, self)
     forceSneak(self, false)
     clearShiftVars(self.character)
     endShiftCue(self.character, true)

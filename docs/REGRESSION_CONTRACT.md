@@ -1,6 +1,165 @@
 # Shifting and HUD regression contract
 
-## Current follow-up: 0.4.83 (Oct 23 hosted playtest)
+## Shift-size effect: November 8
+
+- User-confirmed November 8: the shift-size effect looks right at the 0.75
+  setting (kept as the default), and fresh raw food no longer makes a Garou
+  sick in multiplayer.
+
+- Target: ease the current model 75% toward the destination form's scale
+  during the actual timed-action progress. On cancel, ease from the reached
+  size back to the current form's size over one real second.
+- Confirmed working: the user now sees the shortened Resolve description
+  after updating the installed mod copy, rather than only the local repo.
+  The user also reports that the original 50% shift-size effect "looks great".
+  That does not separately confirm every cancellation or multiplayer edge case.
+- Tuning: `WTAGarou.ShiftScaleFraction = 0.75` in Definitions. Change it to
+  `1.00` for full target size or `0.50` for the original effect, then use
+  Reload defs. New channels read the new value; active ones keep their
+  original endpoint. Cancellation still takes one second.
+- Must remain untouched: shift durations, costs, Resolve XP and perks,
+  cancellation rules, nil-animation handling, sound cues, model selection,
+  server authority, the signed Java JAR and the user's Steam stage/text files.
+- The effect is local to the shifting player's view, including each local
+  split-screen player. Remote observer form snapshots remain unchanged.
+- Hold the configured endpoint while waiting for completion. Confirmation or a
+  forced form change restores the form's exact normal scale. Denial returns
+  smoothly; a missing completion reply starts recovery after five seconds.
+  Death/visual cleanup clears the effect. A replacement channel starts at
+  the currently interpolated size, and stale action callbacks cannot own it.
+- Verification: Lua state-machine and integration tests cover growth,
+  shrinking, cancellation, repeat cancellation, replacement, completion,
+  denial, missing replies, forced forms, death, and independent players.
+  The 75%/100% settings and wolf equipment alignment still need live testing.
+
+## Current follow-up: 0.5.0 (the Resolve update; not yet playtested)
+
+Write-up: `docs/RESOLVE_0500.md` (the full channel formula lives there).
+
+- Resolve passive perks (user request): each level reduces the linear
+  resist penalty by 0.1 s, from 2 s to 1 s at level 10. The existing
+  logarithmic tail and half-second floor remain; higher levels must never
+  shorten a countdown at the same resist count. Each level boosts passive
+  baseline pull by 1%, capped at +10%; total boosted pull is also capped
+  at 95% of the character's initial Crinos drain, including Berserkers.
+  The cap cannot rise with escalation. No changes to howling, baseline
+  targets, nourishment/bracket/pause rules, XP, initial countdown or reset
+  rules. These new perks are implemented but not live-confirmed.
+- November 7 ship-prep report (user-confirmed): Resolve XP awards and the
+  countdown/baseline perks work; the wrapped Wyrm Infection line looks good.
+  Follow-up: the purge note drops its trailing "left" (it wrapped onto a line
+  of its own), and the Resolve tooltip still showed a raw underscore key, so
+  IG_UI.json now carries a main description plus one text per level (built
+  from the live tables; the test compares them), and a client hook on
+  ISSkillProgressBar:updateTooltip swaps any raw Resolve key for the same
+  text. Other skills' tooltips are untouched. November 8: the level texts
+  showed, but the main line still read "IGUI_perks_Resolve_Description"
+  (B42.21 builds that key from the translated name, not the id); the hook
+  now replaces any raw description key inside the Resolve tooltip. Changelog draft:
+  `docs/CHANGELOG_0500.md`.
+- November 7 hosted report (user-confirmed): the opt-in grant, moon
+  exposure (fog, roofs, windows, doorways), the Resolve 0 roar gate and the
+  Resolve 3 door charge all worked. Follow-up changes: Resolve XP goes through
+  `addXpNoMultiplier` first (no trait-boost 25% cut, no sandbox multiplier),
+  and Garou health-panel lines wrap inside the vanilla width instead of
+  widening the panel. Award amounts, perk thresholds and every other tuning
+  value are unchanged.
+- Resist XP (user request, same day): every third resist in one streak gives
+  8 Resolve XP (lowered from 25). The other resists give 3 (the shift amount), and only when
+  the shift-XP cooldown is over; they restart that cooldown. The streak is
+  the existing resist count, which resets when Rage drops below 95 or the
+  character reaches Crinos.
+- November 7 solo report: the user confirmed shifting and moonlight worked,
+  and Resolve appeared in the skills panel, but with an untranslated name.
+  This is not confirmation of every threshold, opening, XP effect or MP path.
+  The uploaded solo console records the 50-Rage Crinos entry with a six-second
+  channel, moon-adjusted shift timings and Resolve XP award messages. It also
+  records repeated nil calls at `openingExposed`, line 171.
+  Repair candidate: move only the three perk translation keys from UI.json
+  to IG_UI.json, and replace the nonexistent B42.21 `getDoorFrameTo` with
+  oriented DoorWallN/W property checks plus the existing collision guards.
+  The previous test mock incorrectly supplied that nonexistent method.
+  Shifting, exposure tuning, HUD, Java and opt-in are untouched. All 46 test
+  suites pass locally; the repaired label and empty-doorway behavior need
+  a full-restart playtest. Hosted opt-in is the user's next test.
+
+- November 7 existing-character follow-up, not live-tested: a server-owned,
+  saved Yes/No offer grants Werewolf plus Cat's Eyes, Fast Healer and Hearty
+  Appetite without trait-point checks. `/garou trait` uses the same bundle;
+  ordinary MP players use a self-only host-controlled opt-in, while all
+  other debug permissions remain unchanged. Learned levels/XP and all
+  existing Resolve/moon/HUD behavior stay untouched. See
+  `docs/EXISTING_CHARACTER_OPT_IN_0500.md`.
+
+- November 7 follow-up, still not live-tested: `BaselineRage` remains the
+  permanent Startup choice. `EffectiveBaselineRage = chosen + 15 * exposure`
+  (clamped to the Rage range) is used by contentment and Howl. Server samples
+  exposure on Rage updates / Howl / accepted shift timing, and sends explicit
+  `moonExposure` including zero. HUD bracket and identical white baseline
+  symbol follow this value; yellow stays at Startup and is drawn last so it
+  exactly covers white at zero exposure. Width, rates and Crinos thresholds
+  are unchanged. `MoonSkyAccess` admits outdoors and the indoor tile directly
+  beside an unbarricaded open exterior door or uncovered exterior window.
+  Empty-doorway follow-up: with no door object present, `getDoorFrameTo`
+  admits a bare exterior frame or a remaining frame after door removal,
+  provided `isBlockedTo` is false in both directions. A closed/replacement
+  door always takes precedence. No diagonals or room-wide spread; no
+  inferred opening when the frame is also gone. Any door/window barricade
+  blocks; empty frames must pass the engine collision checks.
+  Covered-porch guard: direct outdoor exposure and the outdoor neighbour
+  across every opening require `haveRoofFull() == false`, not merely
+  `isOutside()`. A roofed exterior tile returns no exposure. Missing tile or
+  roof state fails closed; player:isOutside alone is no longer a fallback.
+  Indoor roofed tiles can still qualify through an opening to UNROOFED
+  outside. Roof geometry itself needs live validation on the installed build.
+  `MoonLight.OPENINGS=false` restores outside-only behaviour. Documented
+  engine API signatures checked; actual edge/curtain/MP behaviour still
+  needs a playtest. Tests cover pure exposure, server drift/Howl, packet
+  routing/zero clearing and the exact marker geometry/draw order.
+- Crinos Rage buffer (`WTAGarou.ShiftBuffer`): a shift INTO Crinos may start
+  up to WIDTH (6) Rage short of the 55 floor, a shift OUT of Crinos up to 6
+  above the lock (75; 55 Berzerker Origin). One second per Rage of distance,
+  capped at MAX_SECONDS (6), added AFTER the moonlight cut. Outside the
+  window the old `not_enough_rage` / `crinos_locked` refusals stand. The
+  10 Rage cost is never buffered. Berzerker Origin has no entry floor, so
+  no entry buffer. **Glabro and Hispo have no buffer** (floor = cost = 20,
+  the user's decision: waiting is the buffer). `WTAGarou.ShiftAdmission`
+  is the one admission path; the server no longer calls `CrinosLocked` /
+  `RageRequired` directly for a request.
+- Channel time (`WTAGarou.ShiftSeconds`): `max(0.25, (pair + curve|snap) *
+  (1 - 0.25 * exposure)) + buffer`. The 0.4.61 curve (6 s plateau 45..55,
+  1 s by 20/80) and the 1 s Crinos snap are untouched; `TransformTime.PAIR`
+  / `PAIR_BERZERKER` are additive per-pair seconds, empty by default;
+  `CENTER_ON_BASELINE` is false (plateau stays on 50). Moonlight exposure =
+  access x moon (getMoonFloat / 0.7) x sky x (1 - cloud) x (1 - fog), sky =
+  DAY_SHARE (0.5) + 0.5 x night strength, so the moon pulls by day too; a
+  missing climate API reads 0. Everything is snapshotted at TransformRequest.
+- Resolve skill (`media/perks.txt`, `WTAGarou_Resolve` under a new
+  `WTAGarou_Garou` category; names in UI.json). XP (server-validated,
+  `WTAGarou.AwardResolve`): 25 per resisted running countdown, 3 per
+  completed voluntary shift (5 into Crinos) at most once per 60 s, nothing
+  for forced or cancelled shifts. Granted with `addXp` then `XP:AddXP`;
+  `Resolve.CLIENT_APPLIES_XP` flips the grant to the owning client if MP
+  sync fails. Levels: buffer window 6 + level (cap on the seconds stays 6).
+  Unlocks: crowd charge at 1 (limit 3 / 4 at 5 / 5 at 8), roar stagger at 2
+  (force 1.0 / 1.5 at 6 / 2.0 at 10), door charge at 3. Below the unlock
+  the Java crowd charge is pushed with limit 0, the roar is noise only
+  (`CrinosRoarResult no_resolve`), the door charge answers `no_resolve` and
+  spends nothing. The completed-shift burst is NOT gated. Existing
+  characters start at 0. `/garou resolve <n>` (DebugSetResolve) for tests.
+  `WTAGarou.ResolveLevelOf(player)` is the one level read (tests override it).
+- Wording: "True form" is "Origin" in every player-facing string; the saved
+  key is still `trueForm`. Guide: pages "Shifting time" and "Resolve" sit
+  after "Rage" (the Wyrm and silver pages moved two down; tests follow).
+- Untouched on purpose: `Rage.DEPLETED_HOLD_S` (2 s before the 0-Rage forced
+  return), the 3 s post-shift cooldown, the Resist countdown lengths, the
+  Crinos drain, every Java file and the signature.
+- Tests: `tests/resolve_test.lua` (in run.sh); rage_engine (buffer edges on
+  the server path), crinos_burst (roar gate and force), door_charge (gate),
+  visual (crowd charge by level, re-push on level change), wyrm_tutorial
+  (new pages, shifted indexes).
+
+## Previous follow-up: 0.4.83 (Oct 23 hosted playtest)
 
 Write-up: `docs/PLAYTEST_FIXES_0483.md`.
 

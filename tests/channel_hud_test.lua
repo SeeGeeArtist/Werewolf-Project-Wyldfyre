@@ -2,7 +2,7 @@
 -- The mock base setter intentionally enables the action layer even for nil.
 -- Testing only nil arguments would have missed the actual reported behavior.
 local root = assert(arg[1], "supply WTAGarou directory")
-package.path = root .. "/42/media/lua/shared/?.lua;" .. package.path
+package.path = root .. "/42/media/lua/shared/?.lua;" .. root .. "/42/media/lua/client/?.lua;" .. package.path
 require "WTAGarouDefinitions"
 require "WTAGarouState"
 local checks = 0
@@ -26,6 +26,7 @@ function ISBaseTimedAction:setActionAnim(...)
     self.character:setVariable("IsPerformingAnAction", true)
 end
 function ISBaseTimedAction:getDuration() return self.maxTime end
+function ISBaseTimedAction:getJobDelta() return self.action:getJobDelta() end
 function ISBaseTimedAction:stop() self.stopped = true end
 function ISBaseTimedAction:perform() self.completed = true end
 function ISBaseTimedAction:setAnimVariable(key, value)
@@ -100,12 +101,42 @@ for _, ending in ipairs({"stop","forceCancel"}) do
     check(player.variables.IsPerformingAnAction==false, ending.." clears pose")
 end
 local unstarted=WTAGarouTransformAction:new(player,"Hispo",5,"Homid")
+WTAGarou.ShiftScale.clear(player)
+local scalingAction=WTAGarouTransformAction:new(player,"Crinos",5,"Homid")
+scalingAction.action={getJobDelta=function() return 0.5 end}
+scalingAction:start()
+scalingAction:update()
+local scale=WTAGarou.ShiftScale.value(player,"Homid",1)
+check(math.abs(scale-1.24375)<0.000001,"actual action progress feeds configurable-scale interpolation")
 player.variables.IsPerformingAnAction=true
 player.variables.PerformingAction="drink"
 unstarted:forceCancel()
 check(player.variables.PerformingAction=="drink" and player.variables.IsPerformingAnAction==true,
     "cancelling an unstarted shift does not clear another action")
 check(player.sneaking, "unstarted cancel does not force standing")
+check(WTAGarou.ShiftScale.value(player,"Homid",1)==scale,
+    "unstarted cancel does not cancel another action's scale")
+scalingAction:perform()
+check(math.abs(WTAGarou.ShiftScale.value(player,"Homid",1)-1.4875)<0.000001,
+    "perform holds endpoint until the form changes")
+WTAGarou.ShiftScale.clear(player)
+do
+    local clock=100
+    getTimestampMs=function() return clock*1000 end
+    for _,ending in ipairs({"stop","forceCancel"}) do
+        local action=WTAGarouTransformAction:new(player,"Crinos",5,"Homid")
+        action.action={getJobDelta=function() return 0.5 end}
+        action:start(); action:update()
+        local reached=WTAGarou.ShiftScale.value(player,"Homid",1)
+        action[ending](action)
+        check(WTAGarou.ShiftScale.value(player,"Homid",1)==reached,
+            ending.." starts recovery without a size jump")
+        clock=clock+1
+        check(WTAGarou.ShiftScale.value(player,"Homid",1)==1,
+            ending.." recovers in one second")
+    end
+    getTimestampMs=nil
+end
 local howl=WTAGarouHowlAction:new(player)
 howl:start()
 check(howl.anim=="drink" and player.variables.IsPerformingAnAction==true,
@@ -711,6 +742,29 @@ hud:drawRageMarkers({rage=50,bracketHalfWidth=20,baselineRage=50},bar,50,100)
 local ticks=0
 for _,r in ipairs(hud.rects) do if r[3]==3 and r[4]==6 then ticks=ticks+1 end end
 check(ticks==2,"down-bracket: two 3x6 ticks drawn at the ends of the line")
+-- White effective marker underneath the identical yellow Startup marker.
+for _, e in ipairs({0, 0.5, 1}) do
+    hud.rects={}; hud.trendDir=nil; hud.trendAt=nil; hud.trendRage=nil
+    local md={rage=50, auspice="Philodox", auspiceLocked=true, bracketHalfWidth=10, moonExposure=e}
+    hud:drawRageMarkers(md,bar,50,100)
+    local white, yellow, bracket = {}, {}, {}
+    local whiteLast, yellowFirst = 0, nil
+    for i,r in ipairs(hud.rects) do
+        if r[6]==1 and r[7]==1 and r[8]==1 then white[#white+1]=r; whiteLast=i end
+        if r[6]==1 and r[7]==0.85 and r[8]==0.2 then yellow[#yellow+1]=r; yellowFirst=yellowFirst or i end
+        if r[6]==1 and r[7]==0.95 and r[8]==0.75 then bracket[#bracket+1]=r end
+    end
+    local chosen=WTAGarou.HUD.bracketGeometry(bar,50,0,100)
+    local live=WTAGarou.HUD.bracketGeometry(bar,50+15*e,10,100)
+    check(#white==7 and #yellow==7 and whiteLast<yellowFirst,"white drawn first; identical seven-rectangle symbols")
+    check(white[1][1]==live.centreX-2 and yellow[1][1]==chosen.centreX-2,"white follows moon; yellow stays at Startup baseline")
+    check(#bracket==3 and bracket[1][1]==live.lineX and bracket[1][3]==live.lineW,"bracket centred on effective baseline")
+    if e==0 then
+        for i=1,7 do
+            for j=1,5 do check(white[i][j]==yellow[i][j],"zero exposure: opaque yellow exactly covers white") end
+        end
+    end
+end
 g=WTAGarou.HUD.bracketGeometry(bar,100,0,100)
 check(g.centreX==291,"baseline 100: centre column is the last pixel of the bar, not one past it")
 -- single arrow on the moving side, clipped to the meter

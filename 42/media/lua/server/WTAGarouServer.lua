@@ -53,6 +53,8 @@
 WTAGarou = WTAGarou or {}
 
 require "WTAGarouNet"
+require "WTAGarouEnrollmentServer"
+require "WTAGarouResolve"
 require "WTAGarouCrinosBurstServer"
 require "WTAGarouVehicleShiftServer"
 require "WTAGarouPaws"
@@ -85,6 +87,7 @@ local function rageSyncArgs(d)
              -- the startup panel stayed "locked" until a relog.
              identityLocked=d.identityLocked==true,
              auspice=d.auspice, auspiceLocked=d.auspiceLocked==true, baseline=WTAGarou.BaselineRage(d),
+             moonExposure=d.moonExposure or 0,
              -- 0.4.69 HUD: current baseline-bracket half width in Rage points.
              bracket = WTAGarou.BaselineBracketHalfWidth and WTAGarou.BaselineBracketHalfWidth(d.bracketStacks or 0) or nil }
 end
@@ -388,7 +391,8 @@ end
 
 local function startCrinosCountdown(p, d, now)
     local R = WTAGarou.Rage
-    local seconds = WTAGarou.ResistCountdownSeconds(d.resists or 0, R.FORCE_CRINOS_SECONDS or 10)
+    local level = WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(p) or 0
+    local seconds = WTAGarou.ResistCountdownSeconds(d.resists or 0, R.FORCE_CRINOS_SECONDS or 10, level)
     d.crinosCountdownAt = now
     d.crinosCountdownSeconds = seconds
     d.resistRestUntil = nil
@@ -440,14 +444,48 @@ local function resistCountdown(p, d, now)
     d.resists = (d.resists or 0) + 1
     local rest = WTAGarou.ResistRestSeconds(resisted)
     d.resistRestUntil = now + rest
-    local nextSeconds = WTAGarou.ResistCountdownSeconds(d.resists, WTAGarou.Rage.FORCE_CRINOS_SECONDS or 10)
+    local level = WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(p) or 0
+    local nextSeconds = WTAGarou.ResistCountdownSeconds(d.resists, WTAGarou.Rage.FORCE_CRINOS_SECONDS or 10, level)
     print(string.format("[WTAGarou][Resist] #%d resisted a %.2fs countdown; hidden rest %.1fs; next countdown %.2fs",
         d.resists, resisted, rest, nextSeconds))
     sendTo(p, "CrinosCountdownCancelled", { reason = "resisted" })
     sendTo(p, "ResistResult", { ok = true, resists = d.resists, resisted = resisted, nextSeconds = nextSeconds })
+    -- 0.5.0: the primary Resolve training. Every third resist in a streak
+    -- earns the large award; the others earn the shift amount on the shift
+    -- cooldown.
+    local XP = (WTAGarou.Resolve and WTAGarou.Resolve.XP) or {}
+    local streak = math.max(1, tonumber(XP.RESIST_STREAK) or 3)
+    local kind = (d.resists % streak == 0) and "RESIST" or "RESIST_SINGLE"
+    WTAGarou.AwardResolve(p, d, kind, now)
     return true
 end
 WTAGarou.ResistCountdown = resistCountdown
+
+-- ---------------------------------------------------------------------------
+-- 0.5.0 Resolve XP (server-validated). kind: RESIST / RESIST_SINGLE / SHIFT /
+-- CRINOS_SHIFT. Everything but RESIST shares one cooldown (d.resolveShiftXpAt). The client gets a
+-- ResolveXP notice either way; it applies the amount itself only when
+-- Resolve.CLIENT_APPLIES_XP is set.
+-- ---------------------------------------------------------------------------
+function WTAGarou.AwardResolve(player, d, kind, now)
+    local R = WTAGarou.Resolve or {}
+    local XP = R.XP or {}
+    local amount = tonumber(XP[kind]) or 0
+    if amount <= 0 or not d then return 0 end
+    now = tonumber(now) or getTimestamp()
+    if kind ~= "RESIST" then
+        local cooldown = tonumber(XP.SHIFT_COOLDOWN_S) or 60
+        if d.resolveShiftXpAt and (now - d.resolveShiftXpAt) < cooldown then return 0 end
+        d.resolveShiftXpAt = now
+    end
+    local granted = amount
+    if R.grant then granted = R.grant(player, amount, kind) end
+    if (granted or 0) <= 0 then return 0 end
+    print(string.format("[WTAGarou][Resolve] +%d XP (%s)", granted, tostring(kind)))
+    sendTo(player, "ResolveXP", { amount = granted, kind = kind,
+        level = WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(player) or 0 })
+    return granted
+end
 
 -- ---------------------------------------------------------------------------
 -- Endurance refund per form (Homid 0 < Glabro < Hispo < Lupus < Crinos).
@@ -533,6 +571,7 @@ end
 
 local function rageTick(p, d, now)
     local R = WTAGarou.Rage
+    if WTAGarou.UpdateMoonExposure then WTAGarou.UpdateMoonExposure(p, d) end
     local dt = now - (d.lastRageTickAt or now)
     d.lastRageTickAt = now
     if dt <= 0 then return end
@@ -611,8 +650,10 @@ local function rageTick(p, d, now)
         if not paused then
             local pull = WTAGarou.ContentPullPerSecond(level(sets.hungry) > 0, level(sets.thirsty) > 0,
                 level(sets.wellFed) > 0, d.form)
+            local resolveLevel = WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(p) or 0
+            pull = WTAGarou.ResolveBaselinePull(pull, resolveLevel, d)
             if pull > 0 then
-                local baseline = WTAGarou.BaselineRage(d)
+                local baseline = WTAGarou.EffectiveBaselineRage(d)
                 -- 0.4.69 baseline bracket: inside PER_STACK x stacks of the
                 -- baseline the drift is halved; stacks = every negative
                 -- moodle level (Rage-raising and Rage-draining alike).
@@ -621,7 +662,7 @@ local function rageTick(p, d, now)
                     local mult = WTAGarou.BaselinePullMultiplier(d.rage, baseline, stacks)
                     if mult ~= 1 and (now - (d.lastBracketLog or 0)) >= (WTAGarou.RAGE_PRESSURE_LOG_SECONDS or 30) then
                         d.lastBracketLog = now
-                        print(string.format("[WTAGarou][Rage] baseline bracket: %d stacks, +/-%d around %d, drift x%.2f",
+                        print(string.format("[WTAGarou][Rage] baseline bracket: %d stacks, +/-%d around %.2f, drift x%.2f",
                             stacks, WTAGarou.BaselineBracketHalfWidth(stacks), baseline, mult))
                     end
                     pull = pull * mult
@@ -1201,6 +1242,9 @@ end
 local function doorCharge(player, d, args)
     local C = WTAGarou.DoorCharge
     if not C or d.form ~= "Crinos" then return "not_crinos" end
+    -- 0.5.0: unlocked at Resolve.UNLOCK.DOOR_CHARGE.
+    local level = WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(player) or 0
+    if WTAGarou.ResolveUnlocked and not WTAGarou.ResolveUnlocked(level, "DOOR_CHARGE") then return "no_resolve" end
     local x, y, z = tonumber(args.x), tonumber(args.y), tonumber(args.z)
     if not x or not y or not z then return "bad_args" end
     local north = args.north == true
@@ -1273,17 +1317,34 @@ local function handleClientCommand(module, command, player, args)
             sendTo(player, "TransformDenied", { reason = "cooldown" }); return
         end
         local cost = WTAGarou.GetForm(target).rageCost or 0
-        -- 0.4.39: Crinos holds you while the Rage is high (75; 35 for the
-        -- Berserker breed). Only the Rage engine's own 0-Rage return bypasses it.
-        if WTAGarou.CrinosLocked and WTAGarou.CrinosLocked(d) then
-            sendTo(player, "TransformDenied", { reason = "crinos_locked",
-                lockAbove = WTAGarou.CrinosLockAbove(d) }); return
+        -- 0.4.39: Crinos holds you while the Rage is high (75; 55 for the
+        -- Berzerker Origin). Only the Rage engine's own 0-Rage return bypasses it.
+        -- Crinos needs 55 Rage to START but only spends 10 (no floor for Berzerkers).
+        -- 0.5.0: both lines carry a Rage buffer. Up to ShiftBuffer.WIDTH
+        -- (+ Resolve) short of the entry floor, or above the exit lock, the
+        -- shift may still start; every point of distance adds a second to
+        -- the channel. Glabro/Hispo keep their plain floor (= cost). The
+        -- destination's own cost is never buffered.
+        local resolveLevel = WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(player) or 0
+        local admitted, why, admission = WTAGarou.ShiftAdmission(d, target, resolveLevel)
+        if not admitted then
+            sendTo(player, "TransformDenied", { reason = why,
+                lockAbove = WTAGarou.CrinosLockAbove and WTAGarou.CrinosLockAbove(d) or nil,
+                shortfall = admission and admission.shortfall or 0,
+                excess = admission and admission.excess or 0,
+                width = admission and admission.width or 0 })
+            return
         end
-        -- Crinos needs 55 Rage to START but only spends 10 (no floor for Berserkers).
-        if d.rage < WTAGarou.RageRequired(target, d) then
-            sendTo(player, "TransformDenied", { reason = "not_enough_rage" }); return
+        -- 0.5.0: body (pair + plateau curve, or the Crinos snap) cut by the
+        -- moonlight on the skin, then the buffer seconds on top. Snapshotted
+        -- here; the channel is not re-timed while it runs.
+        local exposure = WTAGarou.UpdateMoonExposure and WTAGarou.UpdateMoonExposure(player, d) or 0
+        local seconds, parts = WTAGarou.ShiftSeconds(d, target, { resolveLevel = resolveLevel, exposure = exposure })
+        if parts and (parts.buffer > 0 or parts.exposure > 0) then
+            print(string.format("[WTAGarou][Shift] %s -> %s at %.1f Rage: body %.2fs x moon %.2f (exposure %.2f) + buffer %.1fs = %.2fs (Resolve %d, window %d)",
+                tostring(d.form), tostring(target), tonumber(d.rage) or 0, parts.body, parts.moon, parts.exposure,
+                parts.buffer, seconds, resolveLevel, admission and admission.width or 0))
         end
-        local seconds = WTAGarou.ComputeTransformSeconds(d.rage, target)
         -- Reservation only. Rage is NOT spent and the form is NOT changed until
         -- the client reports the channel finished, so a cancelled shift costs
         -- nothing and needs no refund path.
@@ -1293,7 +1354,9 @@ local function handleClientCommand(module, command, player, args)
         d.pendingForced    = nil
         d.pendingExpiresAt = now + math.ceil(seconds) + 5   -- grace for lag
         sendTo(player, "TransformAccepted",
-            { form = target, seconds = seconds, previousForm = d.form })
+            { form = target, seconds = seconds, previousForm = d.form,
+              buffer = parts and parts.buffer or 0, shortfall = admission and admission.shortfall or 0,
+              excess = admission and admission.excess or 0, moon = parts and parts.moon or 1 })
         return
     end
 
@@ -1327,6 +1390,11 @@ local function handleClientCommand(module, command, player, args)
             strip = serverStrip(player, target, forced) })
         sendTo(player, "RageSync", rageSyncArgs(d))
         completedShiftEffects(player,previousForm,target,forced)
+        -- 0.5.0: a small Resolve reward for a COMPLETED voluntary shift, at
+        -- most one per SHIFT_COOLDOWN_S. Forced shifts and cancels give nothing.
+        if not forced then
+            WTAGarou.AwardResolve(player, d, target == "Crinos" and "CRINOS_SHIFT" or "SHIFT", now)
+        end
         return
     end
 
@@ -1405,8 +1473,9 @@ local function handleClientCommand(module, command, player, args)
         if (now - (d.lastHowlTickAt or 0)) < cooldown then return end
         d.lastHowlTickAt = now
 
-        -- 0.4.45: a howl settles Rage on the character's baseline (auspice).
-        local target = WTAGarou.BaselineRage(d)
+        -- A howl follows the same moon-adjusted target as contentment.
+        if WTAGarou.UpdateMoonExposure then WTAGarou.UpdateMoonExposure(player, d) end
+        local target = WTAGarou.EffectiveBaselineRage(d)
         local amount = (WTAGarou.Howl and WTAGarou.Howl.RAGE_PER_TICK) or 1.0
         local delta = target - (d.rage or 0)
 
@@ -1465,6 +1534,16 @@ local function handleClientCommand(module, command, player, args)
             return
         end
 
+        -- 0.5.0: /garou resolve <n> (testing). The server sets the level on
+        -- its copy when it can, and tells the owning client to do the same.
+        if command == "DebugSetResolve" then
+            local lvl = math.max(0, math.min(tonumber((WTAGarou.Resolve or {}).MAX_LEVEL) or 10, math.floor(tonumber(args.level) or 0)))
+            local ok = WTAGarou.Resolve and WTAGarou.Resolve.setLevel and WTAGarou.Resolve.setLevel(player, lvl)
+            print("[WTAGarou][Debug] Resolve level -> " .. tostring(lvl) .. (ok and "" or " (server could not set it; the client applies it)"))
+            sendTo(player, "ResolveSetLevel", { level = lvl })
+            return
+        end
+
         if command == "DebugSetRage" then
             local v = tonumber(args.value) or 0
             if args.relative then
@@ -1501,19 +1580,7 @@ local function handleClientCommand(module, command, player, args)
 
         if command == "DebugTrait" then
             local removing = args.remove == true
-            local trait = _G.WTAGarouTraits and _G.WTAGarouTraits.Garou or nil
-            if trait and player.getCharacterTraits then
-                pcall(function()
-                    local traits = player:getCharacterTraits()
-                    if removing then traits:remove(trait) else traits:add(trait) end
-                    if player.modifyTraitXPBoost then
-                        player:modifyTraitXPBoost(trait, removing)
-                    end
-                end)
-            end
-            -- Mirror into mod data so the fallback gate in HasGarouTrait agrees
-            -- even if the registry object is unavailable.
-            d.isGarou = not removing
+            if not WTAGarou.EnrollmentServer.grant(player, removing) then return end
             if removing then
                 d.form = "Homid"
                 applyFormBuffs(player)

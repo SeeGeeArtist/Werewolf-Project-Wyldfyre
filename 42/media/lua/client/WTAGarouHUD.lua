@@ -125,11 +125,12 @@ end
 -- Neutral gray at zero, increasingly saturated red toward 100.
 -- 0.4.69 Rage meter markers.
 --  * Baseline bracket: a cream-yellow line inside the bottom edge of the
---    meter, centred on the baseline, half width = the server's current
+--    meter, centred on the moon-adjusted baseline, half width = the server's current
 --    bracket (d.bracketHalfWidth, Rage points); drift is halved inside it.
 --    0.4.79 (user request): 2 px thick (half the old 4) with a 3 px wide
 --    tick rising 4 px above the line at either end: a down-bracket shape.
---  * Baseline centre: a small yellow triangle pointing up, sitting on that line.
+--  * Yellow symbol: permanent Startup baseline. Identical white symbol:
+--    moon-adjusted baseline, drawn underneath yellow so zero exposure hides it.
 --  * Direction: sideways triangles on both sides of the current-value edge
 --    pointing the way Rage moved, fading out over TREND_HOLD_MS after the
 --    last change; the title shows a small up/down triangle meanwhile.
@@ -255,7 +256,8 @@ function WTAGarouHUD:drawRageMarkers(d, bar, rage, rageMax)
     local B, M = WTAGarou.HUD.BRACKET_RGB, WTAGarou.HUD.MARKER_RGB
     local baseline = WTAGarou.BaselineRage and WTAGarou.BaselineRage(d) or nil
     if baseline then
-        local g = WTAGarou.HUD.bracketGeometry(bar, baseline, d.bracketHalfWidth, rageMax)
+        local effective = WTAGarou.EffectiveBaselineRage and WTAGarou.EffectiveBaselineRage(d) or baseline
+        local g = WTAGarou.HUD.bracketGeometry(bar, effective, d.bracketHalfWidth, rageMax)
         if g.lineW > 0 then
             self:drawRect(g.lineX, g.lineY, g.lineW, g.lineH, 0.9, B[1], B[2], B[3])
             if g.lineW >= 2 * g.tickW then   -- the bracket's ends
@@ -263,7 +265,11 @@ function WTAGarouHUD:drawRageMarkers(d, bar, rage, rageMax)
                 self:drawRect(g.lineX + g.lineW - g.tickW, g.tickY, g.tickW, g.tickH, 0.9, B[1], B[2], B[3])
             end
         end
-        self:drawBaselineSymbol(g, M[1], M[2], M[3], 1)
+        -- Same seven rectangles, white FIRST. At zero exposure the opaque
+        -- yellow Startup symbol covers it exactly, including both triangles.
+        self:drawBaselineSymbol(g, 1, 1, 1, 1)
+        local selected = WTAGarou.HUD.bracketGeometry(bar, baseline, 0, rageMax)
+        self:drawBaselineSymbol(selected, M[1], M[2], M[3], 1)
     end
     local dir, alpha = WTAGarou.HUD.trackTrend(self, rage, WTAGarou.HUD.nowMs())
     if dir ~= 0 and alpha > 0 then
@@ -303,7 +309,7 @@ local DENIAL_TEXT = {
     reservation_expired  = "You held the change too long.",
     shift_interrupted    = "The change broke apart.",
     frenzy_forced        = "The Rage takes you!",
-    rage_depleted        = "The Rage is spent. Your true form returns.",
+    rage_depleted        = "The Rage is spent. Your Origin form returns.",
     crinos_locked        = "The Rage will not let you go yet.",
     vehicle_blocked      = "You do not fit in there.",
     -- 0.4.58 paw guard (Hispo/Lupus)
@@ -345,9 +351,10 @@ function WTAGarou.HUD.howlTooltip(data)
         local ok, d = pcall(function() return WTAGarou.GetData(getPlayer()) end)
         if ok then data = d end
     end
-    local base = WTAGarou.BaselineRage and WTAGarou.BaselineRage(data) or 50
+    local base = WTAGarou.EffectiveBaselineRage and WTAGarou.EffectiveBaselineRage(data) or 50
     local R = WTAGarou.Rich
-    return R.lead("Howl", "action") .. "Pulls Rage toward your baseline of" .. R.kw(tostring(base) .. ".", "rage")
+    return R.lead("Howl", "action") .. "Pulls Rage toward your current baseline of"
+        .. R.kw(string.format("%g.", math.floor(base * 10 + 0.5) / 10), "rage")
         .. "Hold still while you howl; moving or Esc stops it."
 end
 
@@ -364,6 +371,16 @@ function WTAGarou.HUD.formTooltip(formName, data)
         rageLine = "Rage cost: none"
     elseif need > cost then
         rageLine = string.format("Rage cost: %d (requires %d)", cost, need)
+        -- 0.5.0: the Crinos entry buffer (one second per missing point, Resolve widens it).
+        if formName == "Crinos" and WTAGarou.ShiftBufferWidth then
+            local lvl = 0
+            if WTAGarou.ResolveLevelOf and getPlayer then
+                local ok, v = pcall(function() return WTAGarou.ResolveLevelOf(getPlayer()) end)
+                if ok then lvl = tonumber(v) or 0 end
+            end
+            local width = WTAGarou.ShiftBufferWidth(lvl)
+            rageLine = rageLine .. string.format("; may begin at %d, +1 s per missing point", math.max(cost, need - width))
+        end
     else
         rageLine = string.format("Rage cost: %d", cost)
     end
@@ -381,7 +398,8 @@ function WTAGarou.HUD.formTooltip(formName, data)
         extra = " <LINE> <RGB:0.6,1,0.6> Reduces wyrm infection."
             .. string.format(" <LINE> <RGB:1,0.6,0.6> Burns %s, +1/s every 90 s held; forced back to %s at 0.",
                 burn, home)
-            .. string.format(" <LINE> <RGB:1,0.6,0.6> Cannot shift out above %d Rage.", lock)
+            .. string.format(" <LINE> <RGB:1,0.6,0.6> Cannot shift out above %d Rage (%d with the buffer; +1 s per point over %d).",
+                lock, lock + (WTAGarou.ShiftBufferWidth and WTAGarou.ShiftBufferWidth(0) or 6), lock)
     end
     if WTAGarou.IsBulkForm and WTAGarou.IsBulkForm(formName) then
         extra = extra .. " <LINE> <RGB:1,0.6,0.6> Too big for vehicles; smashes open windows when climbing through."
@@ -479,7 +497,7 @@ function WTAGarouHUD:createChildren()
         self, function() if WTAGarou.WolfCoat and WTAGarou.WolfCoat.toggle then WTAGarou.WolfCoat.toggle(self.player) end end)
     self.startupBtn:initialise()
     self.startupBtn:setTooltip(WTAGarou.Rich.lead("Werewolf Startup", "action")
-        .. "True form, coat and baseline Rage (locked once confirmed), and the wolf gear colour.")
+        .. "Origin, coat and baseline Rage (locked once confirmed), and the wolf gear colour.")
     self:addChild(self.startupBtn)
     self.rightButtons = { self.stripBtn, self.dressBtn, self.howlBtn, self.resistBtn, self.guideBtn, self.startupBtn }
 

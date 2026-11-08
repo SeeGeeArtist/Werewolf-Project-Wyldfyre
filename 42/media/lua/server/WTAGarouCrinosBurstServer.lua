@@ -2,14 +2,16 @@ require "WTAGarouCrinosBurst"
 require "WTAGarouNet"
 local B=WTAGarou.CrinosBurst
 local serial=0
-local function emit(player,reason)
+-- 0.5.0: `force` overrides CrinosShiftBurst.HIT_FORCE (the roar scales it
+-- by Resolve; the completed-shift burst keeps the table value).
+local function emit(player,reason,force)
     local cfg=WTAGarou.CrinosShiftBurst or {}
     if isClient() or cfg.ENABLED==false
         or not player or player:isDead() or not WTAGarou.HasGarouTrait(player) then return end
     if WTAGarou.GetData(player).form~="Crinos" then return end
     local packet={x=player:getX(),y=player:getY(),z=player:getZ(),
         radius=math.max(0.25,math.min(3,tonumber(cfg.RADIUS) or 1.5)),
-        force=math.max(0.1,math.min(2,tonumber(cfg.HIT_FORCE) or 1))}
+        force=math.max(0.1,math.min(2,tonumber(force) or tonumber(cfg.HIT_FORCE) or 1))}
     if not B.finite(packet.x) or not B.finite(packet.y) or not B.finite(packet.z)
         or not B.finite(packet.radius) or not B.finite(packet.force) then return end
     local cell=getCell()
@@ -66,6 +68,18 @@ function B.onRoar(player)
         radius=math.max(1,math.min(90,radius))
         addSound(player,player:getX(),player:getY(),player:getZ(),radius,radius)
     end
+    -- 0.5.0: the stagger needs Resolve (UNLOCK.ROAR_STAGGER); its force grows
+    -- with the level (Resolve.ROAR_FORCE). The noise above happens regardless.
+    local level=WTAGarou.ResolveLevelOf and WTAGarou.ResolveLevelOf(player) or 0
+    if WTAGarou.ResolveUnlocked and not WTAGarou.ResolveUnlocked(level,"ROAR_STAGGER") then
+        print(string.format("[WTAGarou][CrinosBurst] standing Crinos Q roar; no stagger at Resolve %d",level))
+        if WTAGarou.Net and WTAGarou.Net.ToClient then
+            WTAGarou.Net.ToClient(player,"CrinosRoarResult",{reason="no_resolve",level=level,
+                need=((WTAGarou.Resolve or {}).UNLOCK or {}).ROAR_STAGGER})
+        end
+        return false
+    end
+    local force=WTAGarou.ResolveRoarForce and WTAGarou.ResolveRoarForce(level) or nil
     -- 0.4.42: knockback cooldown (noise above still applies every roar).
     local cooldown=tonumber((WTAGarou.CrinosShiftBurst or {}).ROAR_COOLDOWN) or 5
     if not B.finite(cooldown) then cooldown=5 end
@@ -75,7 +89,7 @@ function B.onRoar(player)
         print(string.format("[WTAGarou][CrinosBurst] standing Crinos Q roar; knockback cooling down (%.1fs left)",(cooldown-(now-last))/1000))
         return false
     end
-    local emitted=emit(player,"standing Crinos Q roar")
+    local emitted=emit(player,"standing Crinos Q roar",force)
     if emitted then lastKnockback[player]=now end
     return emitted
 end

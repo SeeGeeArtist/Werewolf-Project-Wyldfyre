@@ -33,7 +33,8 @@
            /garou wolfclear         clear the tracked test wolf proxy
            /garou sex               swap male/female for model tests (single player only)
            /garou infamy 40         set infamy
-           /garou identity reset    unlock true form / coat / baseline Rage (0.4.39)
+           /garou identity reset    unlock Origin / coat / baseline Rage (0.4.39)
+           /garou resolve 3         set the Resolve skill level (0.5.0)
            /garou info              dump current state
            /garou panictrace 60     trace panic read-only for 60 seconds
            /garou panictrace 0      stop tracing early
@@ -108,9 +109,21 @@ function WTAGarou.Debug.setInfamy(value)
     WTAGarou.Net.ToServer(player, "DebugSetInfamy", { value = tonumber(value) or 0 })
 end
 
+-- 0.5.0: set the Resolve skill level (testing only).
+function WTAGarou.Debug.setResolve(level)
+    local player = getPlayer(); if not player then return end
+    WTAGarou.Net.ToServer(player, "DebugSetResolve", { level = tonumber(level) or 0 })
+end
+
 function WTAGarou.Debug.grantTrait(remove)
     local player = getPlayer(); if not player then return end
-    WTAGarou.Net.ToServer(player, "DebugTrait", { remove = remove == true })
+    require "WTAGarouAccess"
+    if remove or (WTAGarou.Access and WTAGarou.Access.privileged(player)) then
+        WTAGarou.Net.ToServer(player, "DebugTrait", { remove = remove == true })
+    else
+        require "WTAGarouEnrollment"
+        WTAGarou.Enrollment.answer(player, true)
+    end
 end
 
 -- 0.4.94: swap the character's sex for model testing (the vanilla body
@@ -200,7 +213,8 @@ local HELP = {
     "/garou info            dump current state",
     "/garou panictrace [seconds]  read-only panic trace (default 60; 0 stops)",
     "/garou hudreset        restore the default panel position",
-    "/garou identity reset  unlock the confirmed true form / coat / baseline Rage (testing)",
+    "/garou identity reset  unlock the confirmed Origin / coat / baseline Rage (testing)",
+    "/garou resolve <0-10>  set the Resolve skill level (testing, 0.5.0)",
     "/garou reload          re-read WTAGarouDefinitions.lua (tuning tables), then reshift",
     "/garou wolf <on|off|status>  direct player-body prototype",
 }
@@ -501,6 +515,14 @@ function WTAGarou.Debug.handle(argstring)
         return true
     end
 
+    if cmd == "resolve" then
+        local n = tonumber(args[2])
+        if n == nil then say("usage: /garou resolve <0-10>"); return true end
+        WTAGarou.Debug.setResolve(n)
+        say("resolve = " .. tostring(math.floor(n)))
+        return true
+    end
+
     if cmd == "identity" then
         if args[2] == "reset" then WTAGarou.Debug.resetIdentity() else say("usage: /garou identity reset") end
         return true
@@ -515,8 +537,8 @@ function WTAGarou.Debug.handle(argstring)
         return true
     end
 
-        if cmd == "trait"   then WTAGarou.Debug.grantTrait(false); say("Garou trait granted"); return true end
-    if cmd == "untrait" then WTAGarou.Debug.grantTrait(true);  say("Garou trait removed"); return true end
+    if cmd == "trait" then WTAGarou.Debug.grantTrait(false); return true end
+    if cmd == "untrait" then WTAGarou.Debug.grantTrait(true); return true end
 
     if cmd == "wolfspawn" then
         WTAGarou.Debug.spawnWolf()

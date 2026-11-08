@@ -1,0 +1,9 @@
+VERSION = 1,
+
+option WTAGarou.AllowWerewolfOptIn
+{
+    type = boolean,
+    default = true,
+    page = WTAGarou,
+    translation = WTAGarou_AllowWerewolfOptIn,
+}

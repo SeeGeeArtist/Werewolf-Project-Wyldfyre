@@ -57,13 +57,13 @@ local d = WTAGarou.GetData(p)
 d.isGarou = true; d.form = "Crinos"; d.infectionBurn = 40
 local text, purging = HP.lineText(p)
 check(text:find("- Wyrm Infection", 1, true) == 1, "line starts with - Wyrm Infection: " .. text)
-check(purging and text == "- Wyrm Infection (purging 40%, 3:00 left)", "Crinos purge read-out (0.4.19 wording): " .. text)
+check(purging and text == "- Wyrm Infection (purging 40%, 3:00)", "Crinos purge read-out (0.4.19 wording): " .. text)
 d.form = "Homid"
 text, purging = HP.lineText(p)
 check(not purging and text == "- Wyrm Infection", "Homid read-out is the plain line (0.4.19): " .. text)
 d.form = "Hispo"; d.infectionBurn = nil
 text = HP.lineText(p)
-check(text == "- Wyrm Infection (purging 0%, 15:00 left)", "Hispo read-out: " .. text)
+check(text == "- Wyrm Infection (purging 0%, 15:00)", "Hispo read-out: " .. text)
 check(HP.isInfected(p) == true, "isInfected reads BodyDamage")
 check(HP.isInfected(newPlayer(true, false)) == false, "not infected when the flag is off")
 check(HP.shouldShow({ character = newPlayer(false, true) }) == false, "non-Garou never gets the Wyrm line")
@@ -243,16 +243,22 @@ for i, pg in ipairs(pages) do
     check(not pg.body:find("<SIZE", 1, true) and not pg.body:find("<H1", 1, true), "page " .. i .. " never uses <SIZE>/<H1>")
 end
 check(pages[3].body:find("Berzerker", 1, true) and pages[3].body:find("Near-Wolf", 1, true), "form page uses display names")
-check(pages[7].body:find("Wyrm Infection", 1, true) and pages[7].body:find("5 minutes", 1, true), "Wyrm page quotes the five-minute purge")
+-- 0.5.0: "Shifting time" and "Resolve" follow the Rage page, so the Wyrm and silver pages moved two down.
+check(pages[6].title == "Shifting time" and pages[6].body:find("Buffer:", 1, true) and pages[6].body:find("Moon:", 1, true)
+    and pages[6].body:find("six", 1, true) and pages[6].body:find("costs its usual 10", 1, true), "shifting-time page covers body, moon and the Crinos buffer")
+check(pages[7].title == "Resolve" and pages[7].body:find("Level 1:", 1, true) and pages[7].body:find("Level 2:", 1, true)
+    and pages[7].body:find("Level 3:", 1, true) and pages[7].body:find("Resist", 1, true) and pages[7].body:find("once a minute", 1, true),
+    "Resolve page lists training and the three unlock levels")
+check(pages[9].body:find("Wyrm Infection", 1, true) and pages[9].body:find("5 minutes", 1, true), "Wyrm page quotes the five-minute purge")
 -- 0.4.59: the hunters' silver page documents every silver route and the sealed-glass exception
 -- 0.4.75: split in two (page six overran the panel; last visible line was Forged silver).
-check(pages[8] and pages[8].title:find("Silver", 1, true) and pages[8].body:find("Silver rounds", 1, true) and pages[8].body:find("Blacksmith level", 1, true)
-    and not pages[8].body:find("car battery", 1, true), "silver page covers fragments, rounds and forging skill")
-check(pages[9] and pages[9].title == "Silver nitrate" and pages[9].body:find("twelve landed hits", 1, true)
-    and pages[9].body:find("car battery", 1, true) and pages[9].body:find("in a vessel does not burn", 1, true) and pages[9].body:find("hits left", 1, true), "nitrate page covers the fluid coats, the charge meter and the vessel exception")
+check(pages[10] and pages[10].title:find("Silver", 1, true) and pages[10].body:find("Silver rounds", 1, true) and pages[10].body:find("Blacksmith level", 1, true)
+    and not pages[10].body:find("car battery", 1, true), "silver page covers fragments, rounds and forging skill")
+check(pages[11] and pages[11].title == "Silver nitrate" and pages[11].body:find("twelve landed hits", 1, true)
+    and pages[11].body:find("car battery", 1, true) and pages[11].body:find("in a vessel does not burn", 1, true) and pages[11].body:find("hits left", 1, true), "nitrate page covers the fluid coats, the charge meter and the vessel exception")
 -- 0.4.81: the traps page (scatter + silver smoke bomb) sits after the nitrate page
-check(pages[10] and pages[10].title == "Silver: traps" and pages[10].body:find("Scattered silver", 1, true) and pages[10].body:find("smoke bomb", 1, true)
-    and pages[10].body:find("gas mask", 1, true), "traps page covers scatter and the silver smoke bomb")
+check(pages[12] and pages[12].title == "Silver: traps" and pages[12].body:find("Scattered silver", 1, true) and pages[12].body:find("smoke bomb", 1, true)
+    and pages[12].body:find("gas mask", 1, true), "traps page covers scatter and the silver smoke bomb")
 -- 0.4.97: the Startup page (origin, coat, auspice) sits second; the paws/vehicles page fourth.
 check(pages[2].title == "Who you are" and pages[2].body:find("Metis", 1, true) and pages[2].body:find("Auspice", 1, true)
     and pages[2].body:find("Wolf Gear", 1, true), "startup page covers origin, coat, auspice and gear")
@@ -276,19 +282,30 @@ check(P[2]:find("Human-born starts as, and falls back to, Human; Wolf-born to Wo
 check(P[4]:find("Near-Wolf and Wolf have no hands.", 1, true) and P[4]:find("Berzerker and Near-Wolf are too big for a car seat", 1, true), "paws page reads with spaces: " .. P[4])
 check(P[1]:find("The Rage panel (top left) lists your five forms on the left and Strip, Dress, Howl, Resist, this Guide and Startup on the right.", 1, true), "page 1: 'The Rage panel' reads with spaces")
 check(P[3]:find("Berzerker: the war form. Needs 55 Rage, burns 1 Rage a second (one more each 90 seconds you hold it)", 1, true), "form page: Berzerker line reads with spaces (0.4.69 escalation)")
-check(P[5]:find("Fear, stress, pain and taking damage raise it. Dealing damage spends it. Being fed and watered, or howling, settles it toward your baseline (30 to 70, chosen once on the Startup panel). Sadness, exhaustion and drowsiness drain it to 0. Every bad moodle level widens a band around the baseline where that settling runs at half speed.", 1, true), "Rage page (0.4.69): damage dealt spends Rage; sad drains; baseline bracket sentence")
-check(P[3]:find("shrugs off most flinches. Sprint into a closed wooden door to smash it (12 Rage, 18 if locked, plus stamina).", 1, true)
-      and not P[3]:find("Too tall for doorways", 1, true), "form page (0.4.71): door-charge sentence reads with spaces; doorway duck sentence gone, no window charge")
+check(P[5]:find("Fear, stress, pain and taking damage raise it. Dealing damage spends it. Being fed and watered, or howling, settles it toward your baseline (30 to 70, chosen once on the Startup panel). Sadness, exhaustion and drowsiness drain it to 0. Bad moodles widen a band where settling runs at half speed.", 1, true), "Rage page: damage dealt spends Rage; sad drains; baseline bracket slowdown")
+check(P[5]:find("The yellow marker keeps your chosen baseline. Moon exposure raises the actual baseline by up to 15:", 1, true)
+    and P[5]:find("At zero exposure, yellow covers white.", 1, true), "guide explains selected/effective baseline and marker layering")
+check(P[6]:find("Unroofed outside or beside an exterior open door, empty doorway or uncovered window counts. Roofed porches block it; so does being deeper indoors.", 1, true),
+    "guide explains local opening exposure without promising room-wide light")
+check(P[3]:find("shrugs off most flinches. With Resolve (see its page) a sprint knocks the first zombies down under you, the Q roar staggers the pack, and a sprint into a closed wooden door smashes it (12 Rage, 18 if locked, plus stamina).", 1, true)
+      and not P[3]:find("Too tall for doorways", 1, true), "form page (0.5.0): Resolve abilities sentence reads with spaces; doorway duck sentence gone, no window charge")
+check(P[6]:find("Buffer: only Berzerker has one. You may start the change up to six Rage short of the 55 it needs, or up to six over the 75 that holds you in (55 for a Metis); every point of distance adds one second, after the moon has had its say.", 1, true), "shifting-time page: buffer sentence reads with spaces")
+check(P[6]:find("Resolve widens that window by one Rage per level; the added time never passes six seconds.", 1, true), "shifting-time page: Resolve window sentence")
+check(P[7]:find("Level 1: the Berzerker sprint knocks down the first three zombies in its way (four at 5, five at 8).", 1, true)
+      and P[7]:find("Level 2: the Q roar staggers the pack; it hits harder at 6 and 10.", 1, true)
+      and P[7]:find("Level 3: a sprint smashes closed wooden doors.", 1, true), "Resolve page: unlock lines read with spaces")
 check(P[5]:find("forced into Berzerker. Strip before that if you want to keep your clothes.", 1, true), "Rage page: Strip before the forced shift")
-check(P[5]:find("Shifts channel for six seconds near the middle of the bar (45 to 55 Rage) and quicken toward either end: at 20 or 80 Rage and beyond, any shift but Berzerker takes one second.", 1, true), "Rage page: 0.4.61 channel-time curve sentence reads with spaces")
+check(P[5]:find("See Shifting time for channel rules.", 1, true)
+    and P[6]:find("Body: six seconds on the plateau (45 to 55 Rage), sliding to one second by 20 or 80.", 1, true),
+    "channel curve remains explained on its own page, freeing Rage page space for the moon markers")
 check(P[5]:find("Every Resist makes the next countdown shorter", 1, true), "Rage page: Resist sentence")
-check(P[6]:find("Strip takes it all off first, Dress puts the same items back", 1, true), "page 6: Strip/Dress read with spaces")
-check(P[6]:find("Any form can dress again", 1, true), "page 6: 0.4.22 wear rule")
-check(P[6]:find("Hats and masks are dropped, but never damaged. Bags, jewelry, watches and held items are never dropped or damaged.", 1, true),
+check(P[8]:find("Strip takes it all off first, Dress puts the same items back", 1, true), "page 6: Strip/Dress read with spaces")
+check(P[8]:find("Any form can dress again", 1, true), "page 6: 0.4.22 wear rule")
+check(P[8]:find("Hats and masks are dropped, but never damaged. Bags, jewelry, watches and held items are never dropped or damaged.", 1, true),
     "page 6: hats/masks and never-dropped list")
-check(P[7]:find("Wyrm Infection (a zombie bite)", 1, true) and P[7]:find("Silver burns wherever", 1, true), "page 7: plain Wyrm/Silver words")
-check(P[7]:find("Berzerker closes ordinary wounds in about 100 seconds; Near-Wolf and Near-Human take about 3 minutes 45 seconds.", 1, true), "page 7: updated healing sentence reads with spaces")
-check(P[7]:find("The health panel lists the Silver Burn parts.", 1, true), "page 7: Silver Burn mention")
+check(P[9]:find("Wyrm Infection (a zombie bite)", 1, true) and P[9]:find("Silver burns wherever", 1, true), "page 7: plain Wyrm/Silver words")
+check(P[9]:find("Berzerker closes ordinary wounds in about 100 seconds; Near-Wolf and Near-Human take about 3 minutes 45 seconds.", 1, true), "page 7: updated healing sentence reads with spaces")
+check(P[9]:find("The health panel lists the Silver Burn parts.", 1, true), "page 7: Silver Burn mention")
 
 local fresh = newPlayer(true, false)
 check(T.hasSeen(fresh) == false and T.shouldAutoShow(fresh) == true, "fresh werewolf auto-shows the guide")

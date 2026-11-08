@@ -106,6 +106,16 @@ d.form = "Hispo"
 handler("WTAGarou", "CrinosDoorCharge", p, args)
 check(lastOf("DoorChargeResult").reason == "not_crinos" and door.thumps == 0, "only a Crinos charges")
 d.form = "Crinos"
+-- 0.5.0: the door charge is a Resolve ability (UNLOCK.DOOR_CHARGE = 3).
+-- Nothing is spent on a refused charge; the client gets "no_resolve".
+local resolveLevel = 0
+WTAGarou.ResolveLevelOf = function() return resolveLevel end
+handler("WTAGarou", "CrinosDoorCharge", p, args)
+check(lastOf("DoorChargeResult").reason == "no_resolve" and door.thumps == 0 and d.rage == 60, "Resolve 0: the door holds, nothing spent")
+resolveLevel = 2
+handler("WTAGarou", "CrinosDoorCharge", p, args)
+check(lastOf("DoorChargeResult").reason == "no_resolve" and door.thumps == 0, "Resolve 2: still locked")
+resolveLevel = 3
 handler("WTAGarou", "CrinosDoorCharge", p, { x = 10, y = 10, z = 0, north = false })
 check(lastOf("DoorChargeResult").reason == "no_door", "no door on that edge")
 handler("WTAGarou", "CrinosDoorCharge", p, args)

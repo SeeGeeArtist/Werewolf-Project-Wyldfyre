@@ -77,10 +77,11 @@ function HP.lineText(character)
     local rate = ((WTAGarou.Regeneration or {}).INFECTION_PER_SECOND or {})[d.form]
     -- 0.4.19: plain "- Wyrm Infection" unless a purge is running; then the
     -- percentage and time left only (no form name, no advice text).
+    -- 0.5.0: no trailing "left"; it wrapped onto a line by itself.
     local text = "- " .. name
     if rate and rate > 0 then
         local left = math.max(0, math.ceil((100 - burn) / rate))
-        text = text .. string.format(" (purging %d%%, %d:%02d left)",
+        text = text .. string.format(" (purging %d%%, %d:%02d)",
             math.floor(burn), math.floor(left / 60), left % 60)
     end
     return text, rate ~= nil

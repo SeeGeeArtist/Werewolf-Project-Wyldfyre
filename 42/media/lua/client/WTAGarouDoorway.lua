@@ -93,6 +93,11 @@ function DW.onServerCommand(module, command, args)
         hud:pushNotice(string.format("You smash through the %sdoor. -%d Rage.", args.locked and "locked " or "", rage))
     else
         local text = RESULT_TEXT[tostring(args.reason)]
+        if args.reason == "no_resolve" then
+            -- 0.5.0: the door charge needs Resolve (Resolve.UNLOCK.DOOR_CHARGE).
+            local need = ((WTAGarou.Resolve or {}).UNLOCK or {}).DOOR_CHARGE or 3
+            text = string.format("You slam into the door. Resolve %d is needed to break it.", need)
+        end
         if text then hud:flashDenial(text) end
     end
 end

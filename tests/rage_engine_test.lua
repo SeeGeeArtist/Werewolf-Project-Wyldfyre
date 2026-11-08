@@ -124,7 +124,7 @@ end}
 dofile(root .. "/42/media/lua/server/WTAGarouServer.lua")
 
 -- ------------------------------------------------------- definitions ----
-check(WTAGarou.VERSION=="0.4.99", "version bumped")
+check(WTAGarou.VERSION=="0.5.0", "version bumped")
 check(WTAGarou.GetForm("Glabro").rageCost == 20, "Glabro costs 20, same as Hispo")
 for form, target in pairs({Glabro=26, Hispo=32}) do
     local fd=WTAGarou.GetForm(form)
@@ -578,9 +578,18 @@ check(d.rage < 95 and d.resists == 0 and d.resistRestUntil == nil, "...and leave
 d.crinosCountdownAt = nil; d.resistRestUntil = nil; d.resists = 0
 
 -- ----------------------------------------------- voluntary Crinos gate ----
-d.form = "Homid"; d.rage = 54; d.formChangedAt = 0; sent = {}
+-- 0.5.0: the entry floor (55) carries a six-point buffer: 49..54 may start
+-- (one extra second per missing point), 48 may not.
+d.form = "Homid"; d.rage = 48; d.formChangedAt = 0; sent = {}
 WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Crinos" })
-check(lastOf("TransformDenied") and lastOf("TransformDenied").reason == "not_enough_rage", "54 Rage cannot start Crinos")
+check(lastOf("TransformDenied") and lastOf("TransformDenied").reason == "not_enough_rage", "48 Rage cannot start Crinos (7 short, buffer is 6)")
+check(lastOf("TransformDenied").shortfall == 7 and lastOf("TransformDenied").width == 6, "denial reports the shortfall and the window")
+d.rage = 54; sent = {}
+WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Crinos" })
+check(lastOf("TransformAccepted") and lastOf("TransformAccepted").form == "Crinos", "0.5.0: 54 Rage starts Crinos through the buffer")
+close(lastOf("TransformAccepted").seconds, 2.0, "54 Rage: 1 s snap + 1 s buffer")
+check(lastOf("TransformAccepted").buffer == 1 and lastOf("TransformAccepted").shortfall == 1, "accepted packet carries the buffer seconds")
+WTAGarou.HandleClientCommand("WTAGarou", "TransformCancel", p, { form = "Crinos" })
 d.rage = 55; sent = {}
 WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Crinos" })
 local acc = lastOf("TransformAccepted")
@@ -592,12 +601,22 @@ check(d.form == "Crinos", "voluntary Crinos applied")
 close(d.rage, 45, "voluntary Crinos spent only 10 (55 -> 45)")
 check(d.isFrenzied == false, "voluntary shift is not frenzy")
 check(#burstCalls==2 and burstCalls[2].previous=="Homid","voluntary completion invokes exactly one additional burst")
--- 0.4.39: Crinos exit lock (75 for everyone; 35 for Berserkers); 0-Rage return bypasses it.
-d.rage = 80; d.formChangedAt = 0; sent = {}
+-- 0.4.39: Crinos exit lock (75 for everyone; 55 for Berzerkers); 0-Rage return bypasses it.
+-- 0.5.0: six points of buffer above the lock (76..81 leave slowly; 82 is held).
+d.rage = 82; d.formChangedAt = 0; sent = {}
 WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Homid" })
 check(lastOf("TransformDenied") and lastOf("TransformDenied").reason == "crinos_locked" and lastOf("TransformDenied").lockAbove == 75,
-    "Crinos at 80 Rage cannot shift out (crinos_locked, 75)")
+    "Crinos at 82 Rage cannot shift out (crinos_locked, 75 + 6)")
 check(d.form == "Crinos" and not d.pendingForm, "locked request reserves nothing")
+d.rage = 80; sent = {}
+WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Homid" })
+check(lastOf("TransformAccepted") and lastOf("TransformAccepted").form == "Homid", "0.5.0: Crinos at 80 may shift out through the buffer")
+close(lastOf("TransformAccepted").seconds, 1.0 + 5.0, "80 Rage out of Crinos: 1 s (fast end of the curve) + 5 s buffer")
+WTAGarou.HandleClientCommand("WTAGarou", "TransformCancel", p, { form = "Homid" })
+d.rage = 81; sent = {}
+WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Homid" })
+close(lastOf("TransformAccepted").seconds, 7.0, "81 Rage out of Crinos: 1 s + the full 6 s buffer")
+WTAGarou.HandleClientCommand("WTAGarou", "TransformCancel", p, { form = "Homid" })
 d.rage = 75; sent = {}
 WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Homid" })
 check(lastOf("TransformAccepted") and lastOf("TransformAccepted").form == "Homid", "Crinos at 75 Rage may shift out")
@@ -605,7 +624,12 @@ WTAGarou.HandleClientCommand("WTAGarou", "TransformCancel", p, { form = "Homid" 
 d.form = "Crinos"; d.rage = 70; d.trueForm = "Glabro"; sent = {}
 WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Glabro" })
 check(lastOf("TransformDenied") and lastOf("TransformDenied").reason == "crinos_locked" and lastOf("TransformDenied").lockAbove == 55,
-    "Berserker Crinos at 70 Rage is locked (55)")
+    "Berserker Crinos at 70 Rage is locked (55 + 6 buffer)")
+d.rage = 61; sent = {}
+WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Glabro" })
+check(lastOf("TransformAccepted") and lastOf("TransformAccepted").form == "Glabro", "0.5.0: Berzerker at 61 leaves Crinos through the buffer")
+close(lastOf("TransformAccepted").seconds, WTAGarou.ComputeTransformSeconds(61, "Glabro") + 6, "61 Rage Berzerker exit: curve (dist 11 from 50) + 6 s buffer")
+WTAGarou.HandleClientCommand("WTAGarou", "TransformCancel", p, { form = "Glabro" })
 d.rage = 55; sent = {}
 WTAGarou.HandleClientCommand("WTAGarou", "TransformRequest", p, { form = "Glabro" })
 check(lastOf("TransformAccepted") and lastOf("TransformAccepted").form == "Glabro", "Berserker at 55 may leave Crinos")
@@ -1414,4 +1438,47 @@ local rageBefore=WTAGarou.GetData(p).rage
 WTAGarou.HandleClientCommand("WTAGarou","CrinosRoarRequest",p,{radius=999,force=999,x=999,targets={1}})
 check(roarPlayer==p,"command uses authenticated sender, not payload player")
 check(WTAGarou.GetData(p).rage==rageBefore,"Q roar adds no Rage cost")
+-- Moon baseline is an authoritative target, not an instant Rage grant.
+do
+    dofile(root .. "/42/media/lua/shared/WTAGarouResolve.lua")
+    local mp = newPlayer()
+    local md = WTAGarou.GetData(mp)
+    md.isGarou=true; md.form="Homid"; md.auspice="Ahroun"; md.auspiceLocked=true
+    md.rage=75; md.lastRageTickAt=clock
+    mp.outside=true
+    function mp:isOutside() return self.outside end
+    function mp:getSquare()
+        return {isOutside=function() return mp.outside end,
+            haveRoofFull=function() return mp.roof == true end, getCell=function() return nil end}
+    end
+    local night = 1
+    getClimateMoon=function() return {getMoonFloat=function() return 0.7 end} end
+    getClimateManager=function() return {
+        getNightStrength=function() return night end,
+        getCloudIntensity=function() return 0 end, getFogIntensity=function() return 0 end,
+    } end
+    clock=clock+1; WTAGarou.RageTick(mp,md,clock)
+    close(md.rage,75+1.5*R,"full moon: drift UP toward 85, not down toward chosen 70")
+    close(WTAGarou.BaselineRage(md),70,"server leaves Startup baseline unchanged")
+    close(WTAGarou.EffectiveBaselineRage(md),85,"server effective baseline +15")
+    check(WTAGarou.RageSyncArgs(md).moonExposure==1,"wire carries server exposure")
+    night=0; md.rage=77.4; clock=clock+1; WTAGarou.RageTick(mp,md,clock)
+    close(md.rage,77.5,"noon: drift stops at 77.5 without overshoot")
+    mp.outside=false; md.rage=75; clock=clock+1; WTAGarou.RageTick(mp,md,clock)
+    close(md.rage,75-1.5*R,"indoors: drift goes DOWN toward chosen 70")
+    check(WTAGarou.RageSyncArgs(md).moonExposure==0,"wire explicitly clears moon exposure")
+    mp.outside=true; night=1; md.howling=true; md.rage=84.7; clock=clock+1
+    WTAGarou.HandleClientCommand("WTAGarou","HowlTick",mp,{moonExposure=0,baseline=1})
+    close(md.rage,85,"Howl samples server moon, ignores client target/exposure, caps at 85")
+    mp.outside=false; clock=clock+1
+    WTAGarou.HandleClientCommand("WTAGarou","HowlTick",mp,{moonExposure=1,baseline=100})
+    close(md.rage,84,"indoor Howl pulls down toward 70")
+    check(lastOf("RageSync").moonExposure==0,"Howl sync also clears stale moon state")
+    mp.outside=true; mp.roof=true; md.moonExposure=1; md.rage=75
+    md.lastRageTickAt=clock
+    clock=clock+1; WTAGarou.RageTick(mp,md,clock)
+    close(md.rage,75-1.5*R,"roofed outdoor porch: drift targets chosen baseline")
+    check(WTAGarou.RageSyncArgs(md).moonExposure==0,"porch clears exposure in server packet")
+    getClimateMoon=nil; getClimateManager=nil
+end
 print("PASS: " .. checks .. " rage-engine / berserk-Crinos assertions.")
