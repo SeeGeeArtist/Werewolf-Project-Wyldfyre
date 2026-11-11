@@ -247,8 +247,9 @@ check(pages[3].body:find("Berzerker", 1, true) and pages[3].body:find("Near-Wolf
 check(pages[6].title == "Shifting time" and pages[6].body:find("Buffer:", 1, true) and pages[6].body:find("Moon:", 1, true)
     and pages[6].body:find("six", 1, true) and pages[6].body:find("costs its usual 10", 1, true), "shifting-time page covers body, moon and the Crinos buffer")
 check(pages[7].title == "Resolve" and pages[7].body:find("Level 1:", 1, true) and pages[7].body:find("Level 2:", 1, true)
-    and pages[7].body:find("Level 3:", 1, true) and pages[7].body:find("Resist", 1, true) and pages[7].body:find("once a minute", 1, true),
-    "Resolve page lists training and the three unlock levels")
+    and pages[7].body:find("From the start:", 1, true) and not pages[7].body:find("Level 3:", 1, true)
+    and pages[7].body:find("Resist", 1, true) and pages[7].body:find("once a minute", 1, true),
+    "0.5.2: Resolve page lists training, the start charge and the level 1 and 2 unlocks")
 check(pages[9].body:find("Wyrm Infection", 1, true) and pages[9].body:find("5 minutes", 1, true), "Wyrm page quotes the five-minute purge")
 -- 0.4.59: the hunters' silver page documents every silver route and the sealed-glass exception
 -- 0.4.75: split in two (page six overran the panel; last visible line was Forged silver).
@@ -291,9 +292,9 @@ check(P[3]:find("shrugs off most flinches. With Resolve (see its page) a sprint 
       and not P[3]:find("Too tall for doorways", 1, true), "form page (0.5.0): Resolve abilities sentence reads with spaces; doorway duck sentence gone, no window charge")
 check(P[6]:find("Buffer: only Berzerker has one. You may start the change up to six Rage short of the 55 it needs, or up to six over the 75 that holds you in (55 for a Metis); every point of distance adds one second, after the moon has had its say.", 1, true), "shifting-time page: buffer sentence reads with spaces")
 check(P[6]:find("Resolve widens that window by one Rage per level; the added time never passes six seconds.", 1, true), "shifting-time page: Resolve window sentence")
-check(P[7]:find("Level 1: the Berzerker sprint knocks down the first three zombies in its way (four at 5, five at 8).", 1, true)
-      and P[7]:find("Level 2: the Q roar staggers the pack; it hits harder at 6 and 10.", 1, true)
-      and P[7]:find("Level 3: a sprint smashes closed wooden doors.", 1, true), "Resolve page: unlock lines read with spaces")
+check(P[7]:find("From the start: the Berzerker sprint knocks down the first three zombies in its way (four at 5, five at 8).", 1, true)
+      and P[7]:find("Level 1: the Q roar staggers the pack; it hits harder at 6 and 10.", 1, true)
+      and P[7]:find("Level 2: a sprint smashes closed wooden doors.", 1, true), "0.5.2 Resolve page: unlock lines read with spaces")
 check(P[5]:find("forced into Berzerker. Strip before that if you want to keep your clothes.", 1, true), "Rage page: Strip before the forced shift")
 check(P[5]:find("See Shifting time for channel rules.", 1, true)
     and P[6]:find("Body: six seconds on the plateau (45 to 55 Rage), sliding to one second by 20 or 80.", 1, true),

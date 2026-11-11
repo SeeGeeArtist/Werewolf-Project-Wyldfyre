@@ -6,6 +6,7 @@ while IFS= read -r -d '' file; do
 done < <(find "$ROOT/42/media" "$ROOT/tests" -name '*.lua' -print0)
 lua5.1 "$ROOT/tests/visual_test.lua" "$ROOT"
 lua5.1 "$ROOT/tests/shift_scale_test.lua" "$ROOT"
+lua5.1 "$ROOT/tests/shift_visual_sync_test.lua" "$ROOT"
 lua5.1 "$ROOT/tests/channel_hud_test.lua" "$ROOT"
 lua5.1 "$ROOT/tests/local_player_routing_test.lua" "$ROOT"
 lua5.1 "$ROOT/tests/emote_label_test.lua" "$ROOT"

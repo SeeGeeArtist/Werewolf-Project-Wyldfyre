@@ -259,7 +259,8 @@ end
 R.text = R.text or {}
 function R.text.main()
     return "Your control over the Rage. Train it by shifting or by resisting the forced change at 100 Rage;"
-        .. " every third resist in a row gives the most XP."
+        .. " every third resist in a row gives the most XP. Every werewolf starts with the Crinos zombie charge:"
+        .. " sprinting knocks down the first " .. tostring((R.CROWD_CHARGE_LIMIT or {})[0] or 3) .. " zombies you run into."
 end
 
 local function changesAt(level)

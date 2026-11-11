@@ -1,5 +1,5 @@
 local root=assert(arg[1])
-package.path=root.."/42/media/lua/shared/?.lua;"..root.."/42/media/lua/client/?.lua;"..package.path
+package.path=root.."/42/media/lua/shared/?.lua;"..root.."/42/media/lua/client/?.lua;"..root.."/42/media/lua/server/?.lua;"..package.path
 require "WTAGarouDefinitions"
 require "WTAGarouState"
 local n=0
@@ -9,7 +9,7 @@ isServer=function() return server end
 isClient=function() return client end
 getTimestamp=function() return now end
 Events={}
-for _,name in ipairs({"OnTick","OnServerCommand","OnGameStart","OnCreatePlayer","OnPlayerUpdate","OnPlayerDeath"}) do
+for _,name in ipairs({"OnTick","OnClientCommand","OnServerCommand","OnGameStart","OnCreatePlayer","OnPlayerUpdate","OnPlayerDeath"}) do
     Events[name]={Add=function() end}
 end
 local function person(id,name,localPlayer)

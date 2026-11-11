@@ -339,7 +339,7 @@ T_body   = T_pair + (T_snap if g = Crinos else T_curve)
 O = 1 unroofed outside or beside an opening to unroofed outside, otherwise 0
 M = moon brightness 0..1  (ClimateMoon.getMoonFloat() / 0.7; phase table fallback)
 N = night strength 0..1   (ClimateManager.getNightStrength)
-s = MoonLight.DAY_SHARE   (0.5: the moon's daytime pull as a share of its night pull)
+s = MoonLight.DAY_SHARE   (0.25 since 0.5.1, was 0.5: the moon's daytime pull as a share of its night pull)
 S = s + (1 - s) * N       -- sky weight: 0.5 at noon, 1 at full night
 C = cloud intensity 0..1  (getCloudIntensity)
 F = fog intensity 0..1    (getFogIntensity)
@@ -393,9 +393,10 @@ the channel is not re-timed while it runs. Completion still requires `r >= c_g`.
 | XP to level | 50, 100, 200, 350, 550, 800, 1100, 1500, 2000, 2600 |
 | training | Resists that stop a running countdown: the 3rd, 6th, 9th... in one streak earn 8 XP; the others earn 3 XP, but only if the shift-XP cooldown (60 s) is over, and they restart it. The streak resets when Rage drops below 95 or the character reaches Crinos. Completed voluntary shift: 3 XP (5 into Crinos), one reward per 60 s. Forced shifts, cancels: 0. |
 | every level | Crinos buffer window +1 Rage; resist timer penalty reduced by 0.1 s (2 to 1 s); passive baseline pull +1% (max +10%, capped below Crinos drain) |
-| level 1 | zombie charge: a Crinos sprint knocks down the first 3 zombies (4 at level 5, 5 at level 8) |
-| level 2 | roar stagger: the Q roar pushes the pack (force 1.0; 1.5 at level 6; 2.0 at level 10) |
-| level 3 | door charge: a sprint smashes closed wooden doors (12 Rage, 18 locked, plus stamina) |
+| level 0 (since 0.5.2) | zombie charge: a Crinos sprint knocks down the first 3 zombies (4 at level 5, 5 at level 8) |
+| level 1 (since 0.5.2) | roar stagger: the Q roar pushes the pack (force 1.0; 1.5 at level 6; 2.0 at level 10) |
+| level 2 (since 0.5.2) | door charge: a sprint smashes closed wooden doors (12 Rage, 18 locked, plus stamina) |
+| level 3 | passives only (was the door charge before 0.5.2) |
 
 Existing characters start at Resolve 0 and have to earn the three abilities
 back. `/garou resolve <n>` sets the level for testing. The completed-shift

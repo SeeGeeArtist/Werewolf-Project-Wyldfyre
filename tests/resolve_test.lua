@@ -41,14 +41,14 @@ dofile(root .. "/42/media/lua/shared/WTAGarouResolve.lua")
 
 -- ---------------------------------------------------- tuning contract ----
 local S, R, T, M = WTAGarou.ShiftBuffer, WTAGarou.Resolve, WTAGarou.TransformTime, WTAGarou.MoonLight
-check(WTAGarou.VERSION == "0.5.0", "version 0.5.0")
+check(WTAGarou.VERSION == "0.5.2", "version 0.5.2")
 check(S.WIDTH == 6 and S.MAX_SECONDS == 6 and S.PER_RESOLVE_LEVEL == 1, "buffer: six wide, six seconds, +1 per Resolve")
 check(T.BASE == 6.0 and T.FAST == 1.0 and T.PLATEAU == 5 and T.FULL_AT == 20 and T.CRINOS == 1.0 and T.COOLDOWN == 3.0,
     "0.4.61 channel curve and the Crinos snap are untouched")
 check(T.CENTER_ON_BASELINE == false and next(T.PAIR) == nil and next(T.PAIR_BERZERKER) == nil, "centre stays 50, no pair offsets by default")
 check(M.ENABLED == true and M.MAX_REDUCTION == 0.25 and M.FULL_MOON_FLOAT == 0.7, "moon: up to a quarter off, 0.7 = full moon")
 check(R.PERK == "WTAGarou_Resolve" and R.MAX_LEVEL == 10, "perk id and cap")
-check(R.UNLOCK.CROWD_CHARGE == 1 and R.UNLOCK.ROAR_STAGGER == 2 and R.UNLOCK.DOOR_CHARGE == 3, "unlock order: charge, roar, door")
+check(R.UNLOCK.CROWD_CHARGE == 0 and R.UNLOCK.ROAR_STAGGER == 1 and R.UNLOCK.DOOR_CHARGE == 2, "0.5.2 unlock order: charge at 0, roar at 1, door at 2")
 check(R.XP.RESIST == 8 and R.XP.RESIST_STREAK == 3 and R.XP.RESIST_SINGLE == R.XP.SHIFT and R.XP.SHIFT == 3 and R.XP.CRINOS_SHIFT == 5 and R.XP.SHIFT_COOLDOWN_S == 60, "XP table")
 check(WTAGarou.Rage.DEPLETED_HOLD_S == 2.0, "the 0-Rage forced return still waits its two seconds (0.4.75)")
 check(WTAGarou.GetForm("Glabro").rageCost == 20 and WTAGarou.GetForm("Hispo").rageCost == 20
@@ -168,14 +168,14 @@ T.MIN_SECONDS = 0.25
 -- ------------------------------------------------- Resolve helpers ----
 check(WTAGarou.ResolveStep({ [1] = 3, [5] = 4, [8] = 5 }, 0, 0) == 0 and WTAGarou.ResolveStep({ [1] = 3, [5] = 4, [8] = 5 }, 4, 0) == 3
     and WTAGarou.ResolveStep({ [1] = 3, [5] = 4, [8] = 5 }, 5, 0) == 4 and WTAGarou.ResolveStep({ [1] = 3, [5] = 4, [8] = 5 }, 10, 0) == 5, "step table: highest key at or below the level")
-check(not WTAGarou.ResolveUnlocked(0, "CROWD_CHARGE") and WTAGarou.ResolveUnlocked(1, "CROWD_CHARGE"), "crowd charge at 1")
-check(not WTAGarou.ResolveUnlocked(1, "ROAR_STAGGER") and WTAGarou.ResolveUnlocked(2, "ROAR_STAGGER"), "roar stagger at 2")
-check(not WTAGarou.ResolveUnlocked(2, "DOOR_CHARGE") and WTAGarou.ResolveUnlocked(3, "DOOR_CHARGE"), "door charge at 3")
+check(WTAGarou.ResolveUnlocked(0, "CROWD_CHARGE"), "0.5.2: crowd charge from level 0")
+check(not WTAGarou.ResolveUnlocked(0, "ROAR_STAGGER") and WTAGarou.ResolveUnlocked(1, "ROAR_STAGGER"), "0.5.2: roar stagger at 1")
+check(not WTAGarou.ResolveUnlocked(1, "DOOR_CHARGE") and WTAGarou.ResolveUnlocked(2, "DOOR_CHARGE"), "0.5.2: door charge at 2")
 check(WTAGarou.ResolveUnlocked(0, "SOMETHING_UNLISTED"), "abilities not in UNLOCK are never gated")
-check(WTAGarou.ResolveCrowdChargeLimit(0) == 0 and WTAGarou.ResolveCrowdChargeLimit(1) == 3 and WTAGarou.ResolveCrowdChargeLimit(4) == 3
-    and WTAGarou.ResolveCrowdChargeLimit(5) == 4 and WTAGarou.ResolveCrowdChargeLimit(8) == 5 and WTAGarou.ResolveCrowdChargeLimit(10) == 5, "crowd charge limit 0/3/4/5")
-check(WTAGarou.ResolveRoarForce(1) == 0 and WTAGarou.ResolveRoarForce(2) == 1.0 and WTAGarou.ResolveRoarForce(6) == 1.5 and WTAGarou.ResolveRoarForce(10) == 2.0, "roar force 0/1/1.5/2")
-local lim, win = WTAGarou.CrowdChargeFor("Crinos", 0); check(lim == 0 and win == 3.0, "CrowdChargeFor(Crinos, 0): locked, window kept")
+check(WTAGarou.ResolveCrowdChargeLimit(0) == 3 and WTAGarou.ResolveCrowdChargeLimit(1) == 3 and WTAGarou.ResolveCrowdChargeLimit(4) == 3
+    and WTAGarou.ResolveCrowdChargeLimit(5) == 4 and WTAGarou.ResolveCrowdChargeLimit(8) == 5 and WTAGarou.ResolveCrowdChargeLimit(10) == 5, "0.5.2 crowd charge limit 3 from 0, 4 at 5, 5 at 8")
+check(WTAGarou.ResolveRoarForce(0) == 0 and WTAGarou.ResolveRoarForce(1) == 1.0 and WTAGarou.ResolveRoarForce(2) == 1.0 and WTAGarou.ResolveRoarForce(6) == 1.5 and WTAGarou.ResolveRoarForce(10) == 2.0, "roar force 0/1/1.5/2")
+local lim, win = WTAGarou.CrowdChargeFor("Crinos", 0); check(lim == 3 and win == 3.0, "0.5.2: CrowdChargeFor(Crinos, 0): 3 zombies, window kept")
 lim = WTAGarou.CrowdChargeFor("Crinos", 5); check(lim == 4, "CrowdChargeFor(Crinos, 5): 4")
 lim = WTAGarou.CrowdChargeFor("Crinos"); check(lim == 3, "legacy two-argument reading keeps the 0.4.69 table value")
 lim = WTAGarou.CrowdChargeFor("Hispo", 10); check(lim == 0, "no other form charges")
@@ -231,12 +231,12 @@ local outside = fakePlayer(0); outside.outside = true
 close(WTAGarou.MoonLightExposure(outside), 1.0, "full moon, clear night, outside: exposure 1")
 climate.cloud = 0.5; close(WTAGarou.MoonLightExposure(outside), 0.5, "half cloud halves it")
 climate.fog = 0.5; close(WTAGarou.MoonLightExposure(outside), 0.25, "fog stacks with cloud")
-climate.cloud, climate.fog = 0, 0; climate.night = 0; close(WTAGarou.MoonLightExposure(outside), 0.5, "noon full moon: DAY_SHARE (0.5) of the night pull")
-climate.night = 0.5; close(WTAGarou.MoonLightExposure(outside), 0.75, "dusk: halfway between day and night weight")
-climate.night = 0; climate.cloud = 0.5; close(WTAGarou.MoonLightExposure(outside), 0.25, "cloud still cuts the daytime moon")
+climate.cloud, climate.fog = 0, 0; climate.night = 0; close(WTAGarou.MoonLightExposure(outside), 0.25, "noon full moon: DAY_SHARE (0.25, 0.5.1) of the night pull")
+climate.night = 0.5; close(WTAGarou.MoonLightExposure(outside), 0.625, "dusk: halfway between day and night weight")
+climate.night = 0; climate.cloud = 0.5; close(WTAGarou.MoonLightExposure(outside), 0.125, "cloud still cuts the daytime moon")
 climate.cloud = 0; WTAGarou.MoonLight.DAY_SHARE = 0; close(WTAGarou.MoonLightExposure(outside), 0, "DAY_SHARE 0: the old night-only rule")
-WTAGarou.MoonLight.DAY_SHARE = 0.5
-close(WTAGarou.ShiftSeconds({ form = "Homid", rage = 50 }, "Glabro", { exposure = WTAGarou.MoonLightExposure(outside) }), 5.25, "noon full moon: Glabro plateau 6 -> 5.25 s")
+WTAGarou.MoonLight.DAY_SHARE = 0.25
+close(WTAGarou.ShiftSeconds({ form = "Homid", rage = 50 }, "Glabro", { exposure = WTAGarou.MoonLightExposure(outside) }), 5.625, "noon full moon: Glabro plateau 6 -> 5.625 s")
 moonFloat = 0; close(WTAGarou.MoonLightExposure(outside), 0, "new moon by day: nothing")
 moonFloat = 0.7
 climate.night = 1; moonFloat = 0.2; close(WTAGarou.MoonLightExposure(outside), 0.2 / 0.7, "crescent: 0.2 / 0.7 of full")
@@ -394,8 +394,10 @@ for lvl = 1, 10 do
 end
 check(RT.level(0) == nil and RT.level(11) == nil, "no text outside 1..10")
 check(RT.level(1):find("start Crinos from 48 Rage", 1, true) and RT.level(1):find("1.9 s", 1, true)
-    and RT.level(1):find("1% faster", 1, true) and RT.level(1):find("New: zombie charge", 1, true), "level 1 text")
-check(RT.level(3):find("12 Rage, 18 if locked", 1, true), "level 3 door text uses DoorCharge costs")
+    and RT.level(1):find("1% faster", 1, true) and RT.level(1):find("New: roar stagger", 1, true), "0.5.2 level 1 text: roar stagger")
+check(RT.main():find("zombie charge", 1, true) and RT.main():find("first 3 zombies", 1, true), "0.5.2: the main text says the zombie charge comes from the start")
+check(not RT.level(3):find("New:", 1, true), "0.5.2: level 3 gives only passives")
+check(RT.level(2):find("New: door charge", 1, true) and RT.level(2):find("12 Rage, 18 if locked", 1, true), "0.5.2 level 2 door text uses DoorCharge costs")
 check(RT.level(10):find("1.0 s", 1, true) and RT.level(10):find("(2x)", 1, true), "level 10 text")
 check(not RT.level(4):find("New:", 1, true), "level 4 has no unlock line")
 -- client safety net: raw keys are swapped, missing level text is added, other skills untouched
@@ -433,7 +435,7 @@ WTAGarou.HUDFor = function() return { flashDenial = function(_, t) notices[#noti
 WTAGarouJava = nil
 dofile(root .. "/42/media/lua/client/WTAGarouDoorway.lua")
 WTAGarou.DoorwayClient.onServerCommand("WTAGarou", "DoorChargeResult", { reason = "no_resolve" })
-check(notices[#notices]:find("Resolve 3", 1, true), "door denial names the Resolve level: " .. tostring(notices[#notices]))
+check(notices[#notices]:find("Resolve 2", 1, true), "door denial names the Resolve level: " .. tostring(notices[#notices]))
 
 -- The client command handler is wired by Events in the real game; here the
 -- source is checked the way shift_sounds_test checks its handlers.
@@ -455,5 +457,30 @@ for _, file in ipairs({ "client/WTAGarouWolfCoat.lua", "client/WTAGarouHUD.lua",
     for str in src:gmatch('"[^"\n]-"') do check(not str:lower():find("true form", 1, true), file .. " player string still says true form: " .. str) end
 end
 check(serverSrc:find("d.trueForm", 1, true) or serverSrc:find("trueForm", 1, true), "the saved trueForm field is untouched")
+
+-- 0.5.1: exercise the actual server handler's existing reply paths with the
+-- cosmetic helper present, not only the helper's standalone state machine.
+dofile(root .. "/42/media/lua/server/WTAGarouShiftVisualServer.lua")
+isServer=function() return true end
+local hotfixData=WTAGarou.GetData(sp)
+hotfixData.form,hotfixData.rage,hotfixData.lastTransformAt="Homid",60,0
+hotfixData.pendingForm,hotfixData.pendingForced=nil,nil
+clock=clock+100
+WTAGarou.HandleClientCommand("WTAGarou","TransformRequest",sp,{form="Glabro"})
+local hotfixReply=lastOf("TransformAccepted")
+check(hotfixReply and type(hotfixReply.shiftVisualToken)=="number",
+    "real acceptance reply carries visual token")
+WTAGarou.ShiftVisualServer.receive("WTAGarou","ShiftVisualProgress",sp,
+    {token=hotfixReply.shiftVisualToken,progress=0.5})
+close(WTAGarou.ShiftVisualServer.sample(sp).value,1.09,"real reservation accepts cosmetic progress")
+WTAGarou.HandleClientCommand("WTAGarou","TransformCancel",sp,{form="Glabro"})
+check(WTAGarou.ShiftVisualServer.sample(sp).mode=="return"
+    and hotfixData.form=="Homid" and hotfixData.rage==60,"normal cancel reply starts cosmetic recovery without spending Rage")
+clock=clock+2
+WTAGarou.HandleClientCommand("WTAGarou","TransformRequest",sp,{form="Glabro"})
+WTAGarou.HandleClientCommand("WTAGarou","TransformConfirm",sp,{form="Glabro"})
+check(hotfixData.form=="Glabro" and WTAGarou.ShiftVisualServer.sample(sp)==nil,
+    "real successful confirmation clears cosmetic preview")
+isServer=function() return false end
 
 print(string.format("PASS: %d Resolve / Crinos Rage buffer / shift formula assertions (pure Lua; perk, climate, XP sync and the Java charge are not live-verified).", n))

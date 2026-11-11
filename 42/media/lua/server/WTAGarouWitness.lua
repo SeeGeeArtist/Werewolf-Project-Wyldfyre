@@ -35,6 +35,7 @@ WTAGarou.WitnessPlayerByName = playerByName
 
 local function handleWitnessCommand(module, command, player, args)
     if module ~= "WTAGarou" or not player then return end
+    if not WTAGarou.HasGarouTrait(player) then return end   -- 0.5.2: humans cause no Delirium
     args = args or {}
 
     if command == "WitnessDeath" then

@@ -120,7 +120,7 @@ zombies={west,wall,far,up,dead,bandit}
 local ms=10000
 getTimestampMs=function() return ms end
 local before=west.pushes
--- 0.5.0: the stagger is a Resolve ability (UNLOCK.ROAR_STAGGER = 2). Below it
+-- 0.5.0: the stagger is a Resolve ability (UNLOCK.ROAR_STAGGER = 1 since 0.5.2; was 2). Below it
 -- the roar is noise only and the client is told why; the knockback cooldown
 -- is not consumed by a refused roar.
 local resolveLevel=0
@@ -130,12 +130,9 @@ WTAGarou.Net=WTAGarou.Net or {}
 local savedToClient=WTAGarou.Net.ToClient
 WTAGarou.Net.ToClient=function(p,command,args) if command=="CrinosRoarResult" then roarResults[#roarResults+1]=args end end
 check(B.onRoar(player)==false and west.pushes==before,"Resolve 0: roar accepted as noise, no stagger")
-check(#roarResults==1 and roarResults[1].reason=="no_resolve" and roarResults[1].need==2,"client told the roar needs Resolve 2")
+check(#roarResults==1 and roarResults[1].reason=="no_resolve" and roarResults[1].need==1,"client told the roar needs Resolve 1")
 ms=ms+300
 resolveLevel=1
-check(B.onRoar(player)==false and west.pushes==before,"Resolve 1: still no stagger")
-ms=ms+300
-resolveLevel=2
 WTAGarou.Net.ToClient=savedToClient
 check(B.onRoar(player)==true,"standing Crinos roar accepted")
 check(west.pushes==before+1 and west.force==1 and west.hp==100,"roar uses same non-damaging stagger")
@@ -149,15 +146,15 @@ B.onRoar(player)
 check(west.pushes==before+1,"still cooling down at 4.25 s")
 ms=10600+5000
 check(B.onRoar(player)==true and west.pushes==before+2,"knockback returns after ROAR_COOLDOWN (5 s), no Rage charge")
--- 0.5.0: the roar force follows Resolve.ROAR_FORCE (1.0 at 2, 1.5 at 6, 2.0 at 10; the push clamps at 2).
-check(west.force==1,"Resolve 2 roar force 1.0")
+-- 0.5.0: the roar force follows Resolve.ROAR_FORCE (1.0 at 1, 1.5 at 6, 2.0 at 10; the push clamps at 2).
+check(west.force==1,"Resolve 1 roar force 1.0")
 ms=ms+6000; resolveLevel=6
 check(B.onRoar(player)==true and west.force==1.5,"Resolve 6 roar force 1.5")
 ms=ms+6000; resolveLevel=10
 check(B.onRoar(player)==true and west.force==2,"Resolve 10 roar force 2.0")
 before=west.pushes-2
-ms=ms+6000; resolveLevel=2
-check(B.onRoar(player)==true and west.force==1,"back at Resolve 2 the force is 1.0 again")
+ms=ms+6000; resolveLevel=1
+check(B.onRoar(player)==true and west.force==1,"back at Resolve 1 the force is 1.0 again")
 before=west.pushes-2
 check(WTAGarou.CrinosShiftBurst.ROAR_COOLDOWN==5,"cooldown is 5 seconds")
 ms=ms+6000

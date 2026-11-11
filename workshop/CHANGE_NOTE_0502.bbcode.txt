@@ -1,0 +1,10 @@
+[h2]0.5.2 - Humans Stay Human[/h2]
+[list]
+[*]Fixed: in multiplayer, non-werewolf players could build hidden Rage, be forced into Crinos and lose their clothes.
+[*]Humans no longer get Rage, form effects, melee bonuses or werewolf healing.
+[*]Leftover werewolf state on a human character is reset once. Torn clothes are not repaired.
+[*]Form melee bonuses are now flat per hit: Crinos +1, Hispo +0.75, Glabro +0.5, Lupus +0.15. Crinos claws were adding about 7.
+[*]Resolve unlocks moved down: zombie charge from the start, roar stagger at 1, door charge at 2.
+[/list]
+Lua-only hotfix. Java module and signature unchanged.
+Update the server and clients, then restart them.

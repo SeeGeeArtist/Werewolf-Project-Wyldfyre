@@ -1,0 +1,10 @@
+[h2]0.5.1 - Multiplayer Shift Visuals[/h2]
+[list]
+[*]Other players can now see your gradual growth or shrinkage during a shift.
+[*]Cancelling smoothly restores your visible size over one second.
+[*]Daytime moonlight is weaker: at noon it pulls at a quarter of its night strength (was half).
+[*]Werewolves can now get Full from fresh raw meat.
+[*]No changes to shift timing, Rage costs, Resolve XP or abilities.
+[/list]
+Lua-only hotfix. Java module and signature unchanged.
+Update the server and clients, then restart them.

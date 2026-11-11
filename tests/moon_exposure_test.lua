@@ -121,8 +121,8 @@ for i, other in ipairs(neighbours) do
     exposure(0, "no recognised frame means no inferred doorway")
 end
 setFrame(inside, neighbours[1], true)
-night = 0; exposure(0.5, "empty doorway keeps daytime half strength")
-cloud = 0.5; exposure(0.25, "empty doorway still obeys weather")
+night = 0; exposure(0.25, "empty doorway keeps the daytime quarter strength")
+cloud = 0.5; exposure(0.125, "empty doorway still obeys weather")
 night, cloud = 1, 0
 local getFrame = inside.getProperties
 inside.getProperties = nil
@@ -144,9 +144,9 @@ inside.windows[neighbours[1]] = w
 WTAGarou.MoonLight.OPENINGS = false
 exposure(0, "openings switch restores outside-only rule")
 WTAGarou.MoonLight.OPENINGS = true
-night = 0; exposure(0.5, "window at noon keeps half the moon pull")
-cloud = 0.5; exposure(0.25, "window still affected by cloud")
-fog = 0.5; exposure(0.125, "window still affected by fog")
+night = 0; exposure(0.25, "window at noon keeps a quarter of the moon pull")
+cloud = 0.5; exposure(0.125, "window still affected by cloud")
+fog = 0.5; exposure(0.0625, "window still affected by fog")
 moon = 0; exposure(0, "new moon gives no bonus at the window")
 moon, night, cloud, fog = 0.7, 1, 0, 0
 w.HasCurtains = function() error("missing engine support") end

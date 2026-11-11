@@ -166,6 +166,14 @@ local function handleServerCommand(module, command, args, directPlayer)
         WTAGarou.Enrollment.receive(player, args)
         return
     end
+    -- 0.5.2: a human never runs a shift, countdown or strip, even if an
+    -- older server still sends one.
+    local HUMAN_IGNORES = { TransformAccepted=true, TransformCompleted=true, TransformForced=true,
+        CrinosCountdown=true, FrenzyForced=true }
+    if HUMAN_IGNORES[command] and not WTAGarou.HasGarouTrait(player) then
+        print("[WTAGarou][Human] ignored " .. command .. " for a non-werewolf player")
+        return
+    end
     local hud=WTAGarou.HUDFor(player)
     if WTAGarou.Grant and command == WTAGarou.Grant.REPLY then
         -- 0.4.66: the server made the kit items (MP inventories are server-owned)
@@ -252,7 +260,8 @@ local function handleServerCommand(module, command, args, directPlayer)
                 player,
                 args.form,
                 args.seconds or 5.0,
-                args.previousForm or "Homid"
+                args.previousForm or "Homid",
+                args.shiftVisualToken
             )
         end
         return

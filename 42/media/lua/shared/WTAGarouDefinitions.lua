@@ -60,7 +60,7 @@ function WTAGarou.Rich.plain(body)
     out = out:gsub(" +", " "):gsub(" \n", "\n"):gsub("\n ", "\n"):gsub("^ ", ""):gsub(" $", "")
     return out
 end
-WTAGarou.VERSION = "0.5.0"
+WTAGarou.VERSION = "0.5.2"
 
 print("==================================================")
 print("[WTAGarou] Definitions loaded - version " .. WTAGarou.VERSION)
@@ -122,13 +122,12 @@ WTAGarou.FormData = {
         displayName = "Human",
         description = "Human form. Firearms, vehicles, all survivor gear.",
         rageCost = 0,
-        meleeDamage = 1.00,
+        meleeBonus = 0.00,   -- 0.5.2: flat health taken per melee hit, armed or not
         moveSpeed = 1.00,
         damageReduction = 0.00,
         maxCarryMultiplier = 1.00,
         healingMult = 1.00,
         infectionResist = 0.00,
-        unarmedDamageBonus = 0.0,
         unarmedPiercing = false,
         shovePowerBonus = 0.0,
         hitboxScale = 1.00,
@@ -160,7 +159,7 @@ WTAGarou.FormData = {
         displayName = "Near-Human",
         description = "Near-man. Stronger, still bipedal, still uses gear. Worn clothes stay on.",
         rageCost = 20,
-        meleeDamage = 1.50,
+        meleeBonus = 0.50,   -- 0.5.2: flat +0.5 per melee hit (was x1.5 plus 0.6 unarmed)
         attackSpeedMult = 1.10,
         moveSpeed = 1.05,
         damageReduction = 0.10,
@@ -169,7 +168,6 @@ WTAGarou.FormData = {
         minCarryWeight = 14.0,
         healingMult = 1.75,
         infectionResist = 0.35,
-        unarmedDamageBonus = 0.6,
         unarmedPiercing = true,
         shovePowerBonus = 0.4,
         hitboxScale = 1.15,
@@ -202,10 +200,10 @@ WTAGarou.FormData = {
     Crinos = {
         name = "Crinos",
         displayName = "Berzerker",
-        description = "The explosive battle form. Devastating, terrifying, natural armor. Bursts out of worn clothing. With Resolve, a sprint knocks over the first few zombies in its way and smashes wooden doors (12 Rage, 18 locked).",
+        description = "The explosive battle form. Devastating, terrifying, natural armor. Bursts out of worn clothing. A sprint knocks over the first few zombies in its way; with Resolve 2 it also smashes wooden doors (12 Rage, 18 locked).",
         rageCost = 10,
         rageRequired = 55,
-        meleeDamage = 2.00, -- 0.4.68: halved from 4.00 (melee only; firearms are never boosted)
+        meleeBonus = 1.00,   -- 0.5.2: flat +1 per melee hit (was x2 plus 6 unarmed; firearms never boosted)
         attackSpeedMult = 1.60,
         moveSpeed = 1.45,
         damageReduction = 0.80,
@@ -213,7 +211,6 @@ WTAGarou.FormData = {
         minCarryWeight = 30.0,
         healingMult = 8.00,
         infectionResist = 0.95,
-        unarmedDamageBonus = 6.0,
         unarmedPiercing = true,
         shovePowerBonus = 1.5,
         hitboxScale = 1.55,
@@ -246,7 +243,7 @@ WTAGarou.FormData = {
         displayName = "Near-Wolf",
         description = "Dire wolf. Massive four-legged predator. Tears out of worn clothing. Carries in its jaws; worn bags ride as saddlebags; no triggers, no tools.",
         rageCost = 20,
-        meleeDamage = 1.75,
+        meleeBonus = 0.75,   -- 0.5.2: flat +0.75 per melee hit (was x1.75 plus 1.2 unarmed)
         attackSpeedMult = 1.25,
         moveSpeed = 1.45,
         damageReduction = 0.25,
@@ -255,7 +252,6 @@ WTAGarou.FormData = {
         minCarryWeight = 17.0,
         healingMult = 2.25,
         infectionResist = 0.60,
-        unarmedDamageBonus = 1.2,
         unarmedPiercing = true,
         shovePowerBonus = 1.0,
         hitboxScale = 1.55,
@@ -286,7 +282,7 @@ WTAGarou.FormData = {
         displayName = "Wolf",
         description = "Wolf. Fast, quiet, harmless-looking. Slips out of worn clothing. Carries in its jaws; worn bags ride as saddlebags; no triggers, no tools.",
         rageCost = 0,
-        meleeDamage = 1.15,
+        meleeBonus = 0.15,   -- 0.5.2: flat +0.15 per melee hit (was x1.15 plus 0.8 unarmed)
         attackSpeedMult = 1.30,
         moveSpeed = 1.55,
         damageReduction = 0.05,
@@ -294,7 +290,6 @@ WTAGarou.FormData = {
         minCarryWeight = 8.0,
         healingMult = 1.00,
         infectionResist = 0.75,
-        unarmedDamageBonus = 0.8,
         unarmedPiercing = true,
         shovePowerBonus = 0.2,
         hitboxScale = 0.85,
@@ -1207,7 +1202,7 @@ WTAGarou.ShiftBuffer = { WIDTH = 6, MAX_SECONDS = 6, PER_RESOLVE_LEVEL = 1 }
 WTAGarou.MoonLight = {
     ENABLED = true,
     MAX_REDUCTION = 0.25,                 -- full moon, clear night, exposed: -25% body time
-    DAY_SHARE = 0.5,                      -- the moon's pull at full daylight, as a share of its night pull
+    DAY_SHARE = 0.25,                     -- 0.5.1: the moon's pull at noon, a quarter of its night pull (was 0.5)
     BASELINE_BONUS = 15,                  -- full exposure raises the drift/howl target by 15 Rage
     OPENINGS = true,                      -- directly beside an exterior open door or uncovered window
     FULL_MOON_FLOAT = 0.7,                -- ClimateMoon.getMoonFloat() at the full moon (0..0.7 scale)
@@ -1240,10 +1235,12 @@ WTAGarou.Resolve = {
     -- shows the client never receiving it: the server then only notifies and
     -- the owning client applies the amount itself.
     CLIENT_APPLIES_XP = false,
-    UNLOCK = { CROWD_CHARGE = 1, ROAR_STAGGER = 2, DOOR_CHARGE = 3 },
+    -- 0.5.2 (user request): zombie charge from level 0, roar stagger at 1,
+    -- door charge at 2; level 3 has only the per-level passives.
+    UNLOCK = { CROWD_CHARGE = 0, ROAR_STAGGER = 1, DOOR_CHARGE = 2 },
     -- Step tables: the highest level key at or below the character's level wins.
-    CROWD_CHARGE_LIMIT = { [1] = 3, [5] = 4, [8] = 5 },  -- zombies knocked down per sprint
-    ROAR_FORCE = { [2] = 1.0, [6] = 1.5, [10] = 2.0 },   -- roar hit force (CrinosShiftBurst.HIT_FORCE scale, max 2)
+    CROWD_CHARGE_LIMIT = { [0] = 3, [5] = 4, [8] = 5 },  -- zombies knocked down per sprint; +1 at 5 and at 8
+    ROAR_FORCE = { [1] = 1.0, [6] = 1.5, [10] = 2.0 },   -- roar hit force (CrinosShiftBurst.HIT_FORCE scale, max 2)
 }
 defineTable("Howl", {
     -- 0.4.45: a howl pulls toward the character's baseline (WTAGarou.BaselineRage).

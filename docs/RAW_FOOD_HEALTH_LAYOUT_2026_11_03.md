@@ -4,7 +4,7 @@ Candidate Lua-only patch, not live-game verified. Keep the existing Java JAR and
 
 ## Changes
 
-- Shared WTAGarouRawFood wraps full-meal complete and interrupted-meal eat on the authoritative side. Eligible Garou meals are dangerous uncooked food that is not rotten, tainted or explicitly poisoned. Preserve pre-existing POISON and legitimate reductions; normal consumption and nutrition still run once. Multiplayer clients do not restore stats.
+- Shared WTAGarouRawFood wraps full-meal complete and interrupted-meal eat on the authoritative side. Eligible Garou meals are dangerous uncooked food that is not rotten, tainted or explicitly poisoned. Preserve pre-existing POISON and legitimate reductions; normal consumption and nutrition still run once. Multiplayer clients do not restore stats. 0.5.1: during an eligible meal the food is marked safe-raw and then restored, so vanilla no longer zeroes the Full timer.
 - Client WTAGarouHealthPanelLayout replaces only the existing mod's drawing helpers. Reserve the full status width in listbox.textRight; recalculate absolute list/content/window heights instead of subtracting from the injury viewport. Keep scrolling for screen-limited content and leave per-part silver labels and menus unchanged.
 - Added raw_food_health_layout_test.lua to tests/run.sh. Fixtures cover meal eligibility, partial meals, pre-existing poison, client exclusion, repeated layout, text width, font height and screen limits.
 

@@ -1,5 +1,10 @@
 -- Fresh raw-food immunity at the authoritative Build 42 eating boundary.
 -- Java still covers direct engine meals in SP; hosted servers need this Lua path.
+-- 0.5.1: vanilla BodyDamage.JustAteFood also zeroes the Full timer for
+-- dangerous uncooked food, so raw meat could never make a werewolf Full.
+-- For an eligible meal the food is marked safe-raw only while the engine
+-- eats it, then the flag is put back. The timer then grows like any
+-- uncooked safe food (cooked food still counts double, as in vanilla).
 require "WTAGarouDefinitions"
 require "WTAGarouState"
 require "TimedActions/ISEatFoodAction"
@@ -20,13 +25,26 @@ function R.before(action)
         return s, s:get(CharacterStat.POISON)
     end)
     if ok and stats and type(value) == "number" then
-        return { stats = stats, value = value }
+        local saved = { stats = stats, value = value }
+        local food = action.item
+        if type(food.setbDangerousUncooked) == "function"
+            and pcall(food.setbDangerousUncooked, food, false) then
+            saved.food = food
+        end
+        return saved
     end
     return nil
 end
 
 function R.after(saved)
     if not saved then return end
+    if saved.food then
+        local restored = pcall(saved.food.setbDangerousUncooked, saved.food, true)
+        if not restored and not R.flagWarned then
+            R.flagWarned = true
+            print("[WTAGarou][RawFood] raw-food flag restore failed")
+        end
+    end
     local ok, err = pcall(function()
         -- Keep pre-existing poisoning, and do not undo a legitimate reduction.
         if saved.stats:get(CharacterStat.POISON) > saved.value then

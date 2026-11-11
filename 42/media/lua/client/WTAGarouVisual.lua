@@ -785,8 +785,18 @@ end
 function Visual.setRemoteState(player, state, force)
     if not player or not player.isLocalPlayer or player:isLocalPlayer() then return end
     remoteStates[player] = state
+    if state then WTAGarou.ShiftScale.remote(player, state.shift, state.form, state.shiftReceivedAt) end
     if not state then Visual.clear(player)
     else Visual.refresh(player, force) end
+end
+
+function Visual.refreshShiftScale(player)
+    local remote = remoteStates[player]
+    if not remote or not remote.alive or not remote.garou or not WTAGarou.EnableJavaScale then return end
+    if player:isDead() then Visual.clear(player); return end
+    local base = WTAGarou.GetForm(remote.form).modelScale or 1
+    local scale, changing = WTAGarou.ShiftScale.value(player, remote.form, base)
+    applyScale(player, scale, false, changing)
 end
 
 function WTAGarouVisualStatus()

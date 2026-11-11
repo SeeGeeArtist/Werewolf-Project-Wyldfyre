@@ -36,10 +36,10 @@ check(not WTAGarou.FormData.Glabro.description:find("strain", 1, true), "0.4.82:
 check(WTAGarou.Rage.MOODLE_WEIGHTS.Endurance==nil and WTAGarou.Rage.MOODLE_WEIGHTS.Tired==nil
     and WTAGarou.Rage.SAD_MOODLES.Endurance==1.0 and WTAGarou.Rage.SAD_MOODLES.Tired==0.75,
     "0.4.68: exhaustion and drowsiness drain Rage like sadness")
-check(WTAGarou.FormData.Crinos.meleeDamage==2.0 and WTAGarou.Poise.Crinos==0.85
+check(WTAGarou.FormData.Crinos.meleeBonus==1.0 and WTAGarou.Poise.Crinos==0.85
     and WTAGarou.Regeneration.HEALTH_PER_SECOND.Crinos==1.2 and WTAGarou.Regeneration.CLEAR_WOUNDS_AFTER.Crinos==100
     and WTAGarou.Regeneration.CLEAR_BITES_AFTER.Crinos==300,
-    "0.4.68: Crinos melee 2x, poise 0.85, healing eased (bite/Wyrm clocks untouched)")
+    "0.5.2: Crinos melee +1 flat; 0.4.68 poise 0.85, healing eased (bite/Wyrm clocks untouched)")
 check(WTAGarou.DamageIntake.Crinos==0.40 and WTAGarou.DamageIntake.Glabro==0.65 and WTAGarou.DamageIntake.Hispo==0.65
     and WTAGarou.DamageIntake.Homid==1.0 and WTAGarou.DamageIntake.Lupus==1.0
     and WTAGarou.EffectiveHealthFor("Crinos")==250 and math.abs(WTAGarou.EffectiveHealthFor("Glabro")-153.846)<0.01

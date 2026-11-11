@@ -89,7 +89,12 @@ check(type(handler) == "function", "server client-command handler wired")
 check(WTAGarou.DoorCharge.RAGE == 12 and WTAGarou.DoorCharge.RAGE_LOCKED == 18, "12 Rage, 18 locked (0.4.69 +50%)")
 close(WTAGarou.DoorCharge.STAMINA_LOCKED / WTAGarou.DoorCharge.STAMINA, 1.5, "locked stamina cost is relative (1.5x)")
 check(WTAGarou.Rage.ON_HIT_DEALT < 0, "landing a hit spends Rage")
-check(WTAGarou.FormData.Crinos.meleeDamage == 2.0 and WTAGarou.FormData.Glabro.meleeDamage == 1.5, "Crinos 2x melee (was 4x)")
+check(WTAGarou.FormData.Crinos.meleeBonus == 1.0 and WTAGarou.FormData.Glabro.meleeBonus == 0.5
+    and WTAGarou.FormData.Hispo.meleeBonus == 0.75 and WTAGarou.FormData.Lupus.meleeBonus == 0.15
+    and WTAGarou.FormData.Homid.meleeBonus == 0, "0.5.2: flat melee bonus per hit, Crinos +1, others in proportion")
+for name, fd in pairs(WTAGarou.FormData) do
+    check(fd.meleeDamage == nil and fd.unarmedDamageBonus == nil, "0.5.2: no melee multiplier or unarmed bonus left on " .. name)
+end
 check(WTAGarou.FormData.Crinos.modelScale == 1.65 and WTAGarou.Traits.Crinos.stride == 1.65, "1.65x model with matching stride (0.4.69)")
 close(WTAGarou.Traits.Crinos.walk * WTAGarou.Traits.Crinos.stride, 1.3035, "net Crinos walk speed kept at 1.30")
 close(WTAGarou.Traits.Crinos.sprint * WTAGarou.Traits.Crinos.stride, 1.2045, "net Crinos sprint kept at about 1.20")
@@ -106,16 +111,16 @@ d.form = "Hispo"
 handler("WTAGarou", "CrinosDoorCharge", p, args)
 check(lastOf("DoorChargeResult").reason == "not_crinos" and door.thumps == 0, "only a Crinos charges")
 d.form = "Crinos"
--- 0.5.0: the door charge is a Resolve ability (UNLOCK.DOOR_CHARGE = 3).
+-- 0.5.0: the door charge is a Resolve ability (UNLOCK.DOOR_CHARGE = 2 since 0.5.2; was 3).
 -- Nothing is spent on a refused charge; the client gets "no_resolve".
 local resolveLevel = 0
 WTAGarou.ResolveLevelOf = function() return resolveLevel end
 handler("WTAGarou", "CrinosDoorCharge", p, args)
 check(lastOf("DoorChargeResult").reason == "no_resolve" and door.thumps == 0 and d.rage == 60, "Resolve 0: the door holds, nothing spent")
-resolveLevel = 2
+resolveLevel = 1
 handler("WTAGarou", "CrinosDoorCharge", p, args)
-check(lastOf("DoorChargeResult").reason == "no_resolve" and door.thumps == 0, "Resolve 2: still locked")
-resolveLevel = 3
+check(lastOf("DoorChargeResult").reason == "no_resolve" and door.thumps == 0, "Resolve 1: still locked")
+resolveLevel = 2
 handler("WTAGarou", "CrinosDoorCharge", p, { x = 10, y = 10, z = 0, north = false })
 check(lastOf("DoorChargeResult").reason == "no_door", "no door on that edge")
 handler("WTAGarou", "CrinosDoorCharge", p, args)
@@ -164,14 +169,14 @@ close(d.rage, 60, "refusals spend nothing")
 local hitHandler = Events.OnHitZombie.handlers[1]
 check(type(hitHandler) == "function", "server OnHitZombie handler wired")
 p.__class = "IsoPlayer"
-p.md.WTAGarou_MeleeMult = WTAGarou.FormData.Crinos.meleeDamage
+p.md.WTAGarou_MeleeBonus = WTAGarou.FormData.Crinos.meleeBonus
 function p:getPrimaryHandItem() return self.weapon end
 local zombie = { hp = 10, getHealth = function(self) return self.hp end, setHealth = function(self, v) self.hp = v end }
 local bat = { getDamage = function() return 2 end, isRanged = function() return false end }
 local rifle = { getDamage = function() return 2 end, isRanged = function() return true end }
 d.rage = 60; p.weapon = bat
 hitHandler(zombie, p, nil, bat)
-close(zombie.hp, 10 - 2 * (2.0 - 1.0), "melee hit: 2x surplus taken off the zombie (was 4x)")
+close(zombie.hp, 10 - 1.0, "0.5.2: a Crinos melee hit takes a flat 1 extra health")
 close(d.rage, 60 - 0.25, "0.4.82: a landed hit spends a flat 0.25 Rage (0.4.70 flat rule, halved), whatever the damage")
 zombie.hp = 10; p.weapon = rifle
 hitHandler(zombie, p, nil, rifle)
@@ -180,6 +185,11 @@ close(d.rage, 60 - 0.5, "...a firearm hit costs the same flat 0.25")
 local heavy = { getDamage = function() return 40 end, isRanged = function() return false end }
 zombie.hp = 100; p.weapon = heavy
 hitHandler(zombie, p, nil, heavy)
+close(zombie.hp, 100 - 1.0, "0.5.2: the bonus stays +1 whatever the weapon")
+zombie.hp = 10; p.weapon = nil
+hitHandler(zombie, p, nil, nil)
+close(zombie.hp, 10 - 1.0, "0.5.2: an unarmed Crinos claw also takes +1 (was about +7)")
+d.rage = d.rage + 0.25
 close(d.rage, 60 - 0.75, "overkill damage (40) still costs only 0.25 Rage per hit")
 check(WTAGarou.IsRangedWeapon(rifle) and not WTAGarou.IsRangedWeapon(bat) and not WTAGarou.IsRangedWeapon(nil), "ranged guard helper")
 

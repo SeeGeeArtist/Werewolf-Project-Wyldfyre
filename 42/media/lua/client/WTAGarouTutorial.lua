@@ -93,7 +93,7 @@ function T.buildPages()
           body  = B .. F(homid .. ":") .. "the human you were. Nothing marks you. <LINE>"
                .. F(glabro .. ":") .. "bigger, stronger, still passes at a distance. <LINE>"
                .. F(crinos .. ":") .. "the war form. Needs " .. need .. kw("Rage,", "rage") .. "burns 1"
-               .. kw("Rage", "rage") .. "a second (one more each 90 seconds you hold it) and throws you back to human at 0. Double melee damage, "
+               .. kw("Rage", "rage") .. "a second (one more each 90 seconds you hold it) and throws you back to human at 0. +1 melee damage per hit, "
                .. "shrugs off most flinches. With" .. kw("Resolve", "lore") .. "(see its page) a sprint knocks the first zombies down "
                .. "under you, the Q roar staggers the pack, and a sprint into a closed wooden door smashes it (12"
                .. kw("Rage,", "rage") .. "18 if locked, plus stamina). <LINE>"
@@ -102,7 +102,7 @@ function T.buildPages()
         { title = "Paws, jaws and vehicles",
           body  = B .. F(hispo) .. "and" .. F(lupus) .. "have no hands. They carry one thing in their jaws, and any bag you wear rides as saddlebags on the harness. "
                .. "No firearms (you can carry a gun, not fire, reload or rack it), no crafting, building, mechanics or siphoning. Shift back for thumb work. <LINE> <LINE>"
-               .. F(crinos) .. "keeps its thumbs: tools, doors and melee work, double damage. <LINE> <LINE>"
+               .. F(crinos) .. "keeps its thumbs: tools, doors and melee work, +1 damage per hit. <LINE> <LINE>"
                .. F(crinos) .. "and" .. F(hispo) .. "are too big for a car seat; shift into either while seated and you go out through the door, and the car pays for it. "
                .. F(lupus) .. "can drive, badly, as if drunk. <LINE> <LINE>"
                .. " Beast forms cannot wear shoes." .. F(homid) .. "and" .. F(glabro) .. "can, which matters once silver is on the floor. "
@@ -138,9 +138,9 @@ function T.buildPages()
           body  = B .. kw("Resolve", "lore") .. "is the Garou skill of holding the Rage. It appears on the skills panel under Garou. <LINE>"
                .. kw("Training:", "lore") .. "each" .. kw("Resist", "action") .. "that stops a forced-change countdown trains it most. "
                .. "A completed shift of your own choosing adds a little, at most once a minute. Forced changes and cancelled shifts teach nothing. <LINE>"
-               .. kw("Level 1:", "lore") .. "the" .. kw(crinos, "war") .. "sprint knocks down the first three zombies in its way (four at 5, five at 8). <LINE>"
-               .. kw("Level 2:", "lore") .. "the Q roar staggers the pack; it hits harder at 6 and 10. <LINE>"
-               .. kw("Level 3:", "lore") .. "a sprint smashes closed wooden doors. <LINE>"
+               .. kw("From the start:", "lore") .. "the" .. kw(crinos, "war") .. "sprint knocks down the first three zombies in its way (four at 5, five at 8). <LINE>"
+               .. kw("Level 1:", "lore") .. "the Q roar staggers the pack; it hits harder at 6 and 10. <LINE>"
+               .. kw("Level 2:", "lore") .. "a sprint smashes closed wooden doors. <LINE>"
                .. kw("Every level:", "lore") .. "the" .. kw(crinos, "war") .. "Rage buffer widens by one point. <LINE> <LINE> "
                .. "Characters from before this update start at 0 and earn these back." },
         { title = "Clothes, Strip and Dress",

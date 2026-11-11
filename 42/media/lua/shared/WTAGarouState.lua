@@ -130,6 +130,8 @@ function WTAGarou.SetRage(player, value)
 end
 
 function WTAGarou.AddRage(player, delta)
+    -- 0.5.2: humans have no Rage.
+    if WTAGarou.HasGarouTrait and not WTAGarou.HasGarouTrait(player) then return end
     WTAGarou.SetRage(player, WTAGarou.GetRage(player) + (tonumber(delta) or 0))
 end
 

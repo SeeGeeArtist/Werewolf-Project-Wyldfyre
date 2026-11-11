@@ -1,12 +1,16 @@
 -- Observer-only state. Never overwrite the local player's authoritative
 require "WTAGarouWolfCoats"
 require "WTAGarouWolfGear"
+require "WTAGarouShiftScale"
 -- gameplay data, inventory, Rage, traits, or action queue.
 WTAGarou = WTAGarou or {}
 WTAGarou.VisualSync = WTAGarou.VisualSync or {}
 local Sync = WTAGarou.VisualSync
 local snapshots, tracked = {}, {}
 local lastSequence, lastPoll = -1, -1
+local function nowSeconds()
+    return getTimestampMs and getTimestampMs() / 1000 or getTimestamp()
+end
 
 function Sync.receive(module, command, args)
     if not isClient() or module ~= "WTAGarou" or command ~= "VisualSnapshot" then return end
@@ -25,11 +29,13 @@ function Sync.receive(module, command, args)
                 or not WTAGarou.IsValidForm(row.form) or nextState[row.id]
                 or (row.wolfCoat ~= nil and not WTAGarou.ValidWolfCoat(row.wolfCoat))
                 or (row.wolfGearVariant ~= nil and not WTAGarou.ValidWolfGear(row.wolfGearVariant))
-                or (row.crinosTail ~= nil and type(row.crinosTail) ~= "boolean") then return end
+                or (row.crinosTail ~= nil and type(row.crinosTail) ~= "boolean")
+                or not WTAGarou.ShiftScale.validRemote(row.shift) then return end
         nextState[row.id] = {username=row.username, form=row.form,
             garou=row.garou, alive=row.alive, wolfCoat=row.wolfCoat or "default",
             wolfGearVariant=WTAGarou.WolfGearKey(row.wolfGearVariant),
-            crinosTail=WTAGarou.CrinosTailOn(row.crinosTail)}
+            crinosTail=WTAGarou.CrinosTailOn(row.crinosTail),
+            shift=row.shift, shiftReceivedAt=nowSeconds()}
     end
     snapshots, lastSequence = nextState, args.sequence
     lastPoll = -1 -- Apply immediately on the next game-thread tick.
@@ -37,6 +43,11 @@ end
 
 function Sync.tick()
     if not isClient() or not WTAGarou.Visual or not WTAGarou.Visual.setRemoteState then return end
+    -- Scale interpolation must run every frame, not at the one-second
+    -- observer housekeeping rate. This calls only the scale path.
+    if WTAGarou.Visual.refreshShiftScale then
+        for player in pairs(tracked) do WTAGarou.Visual.refreshShiftScale(player) end
+    end
     local now = getTimestamp()
     if now == lastPoll then return end
     lastPoll = now

@@ -75,7 +75,9 @@ end
 -- sendServerCommand has no client to reach. See WTAGarouNet.lua.
 local function sendTo(player, cmd, args)
     if not player then return end
-    WTAGarou.Net.ToClient(player, cmd, args or {})
+    args = args or {}
+    if WTAGarou.ShiftVisualServer then WTAGarou.ShiftVisualServer.reply(player, cmd, args) end
+    WTAGarou.Net.ToClient(player, cmd, args)
 end
 
 local function rageSyncArgs(d)
@@ -224,12 +226,13 @@ local function applyFormBuffs(player)
     local md = player:getModData()
     md.WTAGarou_ArmorReduction   = fd.damageReduction
     md.WTAGarou_HealingMult      = fd.healingMult
-    -- meleeDamage was defined in every form since 0.3.0 and read by NOTHING.
-    -- It is now published here and consumed by the hit hooks below.
-    md.WTAGarou_MeleeMult        = fd.meleeDamage
+    -- 0.5.2: a flat melee bonus replaces the old multiplier and unarmed
+    -- bonus (the old pair added about 7 health per Crinos claw).
+    md.WTAGarou_MeleeBonus       = fd.meleeBonus or 0
+    md.WTAGarou_MeleeMult        = nil
     md.WTAGarou_AttackSpeedMult  = fd.attackSpeedMult
     md.WTAGarou_InfectionResist  = fd.infectionResist
-    md.WTAGarou_UnarmedBonus     = fd.unarmedDamageBonus
+    md.WTAGarou_UnarmedBonus     = nil
     md.WTAGarou_UnarmedPiercing  = fd.unarmedPiercing
     md.WTAGarou_ShoveBonus       = fd.shovePowerBonus
     md.WTAGarou_ToughFeet        = fd.toughFeet
@@ -690,9 +693,37 @@ WTAGarou.RageTick = rageTick
 -- getOnlinePlayers(). Both paths share rageUpdate, throttled per player.
 local RAGE_TICK_SECONDS = 0.5
 local rageTickAlive = false
+
+-- 0.5.2: humans (no Werewolf trait) get no Rage engine, no forced Crinos and
+-- no form effects. A hosted server used to tick every online player, so a
+-- human's hidden Rage could reach 100, force a Crinos shift and tear her
+-- clothes off. Any Garou state left on a human save is cleared once here.
+local function clearHumanState(p, d)
+    local dirty = (d.form ~= nil and d.form ~= "Homid") or d.pendingForm ~= nil
+        or d.crinosCountdownAt ~= nil or d.isFrenzied == true or d.howling == true
+        or (p:getModData().WTAGarou_MeleeBonus or 0) ~= 0
+        or p:getModData().WTAGarou_MeleeMult ~= nil or (tonumber(d.rage) or 0) > 0
+    if not dirty then return false end
+    local prev = d.form
+    d.form = "Homid"
+    d.isFrenzied = false
+    d.howling = false
+    d.pendingForm, d.pendingFrom, d.pendingCost, d.pendingExpiresAt, d.pendingForced = nil, nil, nil, nil, nil
+    d.crinosCountdownAt, d.crinosCountdownSeconds, d.crinosHeldSeconds, d.crinosEscalationSteps = nil, nil, nil, nil
+    d.depletedSince = nil
+    d.rage = 0
+    applyFormBuffs(p)
+    sendTo(p, "RageSync", rageSyncArgs(d))
+    print("[WTAGarou][Human] cleared leftover werewolf state on a non-werewolf player (form was "
+        .. tostring(prev) .. ")")
+    return true
+end
+WTAGarou.ClearHumanState = clearHumanState
+
 local function rageUpdate(p)
     if not p or p:isDead() then return end
     local d = WTAGarou.GetData(p)
+    if not WTAGarou.HasGarouTrait(p) then clearHumanState(p, d); return end
     local now = WTAGarou.NowSeconds()
     if (now - (d.lastRageUpdateAt or 0)) < RAGE_TICK_SECONDS then return end
     d.lastRageUpdateAt = now
@@ -821,8 +852,10 @@ Events.OnTick.Add(function()
     for i=0, players:size()-1 do
         local p = players:get(i)
         rageUpdate(p)
-        local ok, err = pcall(WTAGarou.BodySweep, p, WTAGarou.GetData(p), WTAGarou.NowSeconds())
-        if not ok then print("[WTAGarou] body sweep failed: " .. tostring(err)) end
+        if p and WTAGarou.HasGarouTrait(p) then
+            local ok, err = pcall(WTAGarou.BodySweep, p, WTAGarou.GetData(p), WTAGarou.NowSeconds())
+            if not ok then print("[WTAGarou] body sweep failed: " .. tostring(err)) end
+        end
     end
 end)
 
@@ -844,21 +877,17 @@ local function isRangedWeapon(weapon)
 end
 WTAGarou.IsRangedWeapon = isRangedWeapon
 
-local function applyMeleeSurplus(attacker, victim, baseDamage, weapon)
+local function applyMeleeSurplus(attacker, victim, weapon)
     if not attacker or not victim then return end
     if not instanceof(attacker, "IsoPlayer") then return end
+    if not WTAGarou.HasGarouTrait(attacker) then return end   -- 0.5.2
     -- 0.4.68: the form multiplier is MELEE power; a bullet is a bullet.
     if isRangedWeapon(weapon) then return end
 
-    local md = attacker:getModData()
-    local mult  = md.WTAGarou_MeleeMult or 1.0
-    local flat  = md.WTAGarou_UnarmedBonus or 0.0
-    local armed = attacker.getPrimaryHandItem and attacker:getPrimaryHandItem() ~= nil
-    if not armed then
-        baseDamage = (baseDamage or 1) + flat
-    end
-
-    local surplus = (baseDamage or 1) * (mult - 1.0)
+    -- 0.5.2: flat bonus per landed melee hit, armed or unarmed. Vanilla
+    -- zombies have about 1.8-2.1 health (tough 3.5-3.8), so Crinos +1 is
+    -- roughly half a normal zombie per hit on top of the vanilla damage.
+    local surplus = tonumber(attacker:getModData().WTAGarou_MeleeBonus) or 0
     if surplus <= 0 then return end
 
     pcall(function()
@@ -871,10 +900,9 @@ end
 Events.OnHitZombie.Add(function(zombie, attacker, bodyPart, weapon)
     if not attacker then return end
     if instanceof(attacker, "IsoPlayer") then
-        local dmg = (weapon and weapon.getDamage and weapon:getDamage()) or 1
         -- 0.4.70: flat cost per landed hit, whatever the damage.
         WTAGarou.AddRage(attacker, WTAGarou.Rage.ON_HIT_DEALT or 0)
-        applyMeleeSurplus(attacker, zombie, dmg, weapon)
+        applyMeleeSurplus(attacker, zombie, weapon)
     end
 end)
 
@@ -898,6 +926,7 @@ Events.OnPlayerUpdate.Add(function(player)
     -- 0.4.75: a multiplayer client does not own its body; the server sweep
     -- (BodySweep) does all of this on the authoritative copy.
     if isClient() then return end
+    if not WTAGarou.HasGarouTrait(player) then return end   -- 0.5.2: humans keep vanilla bodies
     local id = player:getOnlineID()
     local bd = player.getBodyDamage and player:getBodyDamage() or nil
     local hp = bd and bd:getOverallBodyHealth() or 100
@@ -1285,6 +1314,17 @@ local function handleClientCommand(module, command, player, args)
     if module ~= "WTAGarou" then return end
     args = args or {}
     local d = WTAGarou.GetData(player)
+
+    -- 0.5.2: every Garou command needs the trait. Only the admin Debug*
+    -- commands pass (DebugTrait is how a tester grants or removes it).
+    if not WTAGarou.HasGarouTrait(player) and not tostring(command):match("^Debug") then
+        clearHumanState(player, d)
+        if command == "TransformRequest" or command == "TransformConfirm" or command == "HowlRequest"
+            or command == "ResistRequest" then
+            sendTo(player, "TransformDenied", { reason = "not_a_garou" })
+        end
+        return
+    end
 
     -- Every Garou power is gated on the character trait.
     if command == "CrinosRoarRequest" then

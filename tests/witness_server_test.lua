@@ -19,6 +19,7 @@ require "WTAGarouAdapters"
 local function player(name, form, garou)
     local p = { name = name, md = { WTAGarou = { form = form or "Homid", witnesses = {} } } }
     p.md[WTAGarou.Tags.GAROU] = garou ~= false
+    p.md.WTAGarou.isGarou = garou ~= false   -- 0.5.2: the sender must be a werewolf
     function p:getUsername() return self.name end
     function p:getModData() return self.md end
     function p:getOnlineID() return 7 end
@@ -62,6 +63,11 @@ check(ok and #fled == 0, "a human PLAYER witness is ignored even with witnesses 
 WTAGarou.Delirium.PLAYERS_WITNESS = true
 ok = pcall(handler, "WTAGarou", "DeliriumReport", host, { witnesses = { { id = "7", name = "Wife" } } })
 check(ok and #fled == 1 and fled[1] == wife, "only the PLAYERS_WITNESS switch brings the player flee response back")
+-- 0.5.2: a human sender is ignored outright
+local human = player("Human", "Homid", false)
+fled = {}
+ok = pcall(handler, "WTAGarou", "DeliriumReport", human, { witnesses = { { id = "7", name = "Wife" } } })
+check(ok and #fled == 0, "0.5.2: a non-werewolf player's witness report does nothing")
 WTAGarou.Delirium.PLAYERS_WITNESS = false
 WTAGarou.Delirium.ENABLED = false
 

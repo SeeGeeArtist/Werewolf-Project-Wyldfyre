@@ -124,7 +124,7 @@ end}
 dofile(root .. "/42/media/lua/server/WTAGarouServer.lua")
 
 -- ------------------------------------------------------- definitions ----
-check(WTAGarou.VERSION=="0.5.0", "version bumped")
+check(WTAGarou.VERSION=="0.5.2", "version bumped")
 check(WTAGarou.GetForm("Glabro").rageCost == 20, "Glabro costs 20, same as Hispo")
 for form, target in pairs({Glabro=26, Hispo=32}) do
     local fd=WTAGarou.GetForm(form)
@@ -1462,8 +1462,8 @@ do
     close(WTAGarou.BaselineRage(md),70,"server leaves Startup baseline unchanged")
     close(WTAGarou.EffectiveBaselineRage(md),85,"server effective baseline +15")
     check(WTAGarou.RageSyncArgs(md).moonExposure==1,"wire carries server exposure")
-    night=0; md.rage=77.4; clock=clock+1; WTAGarou.RageTick(mp,md,clock)
-    close(md.rage,77.5,"noon: drift stops at 77.5 without overshoot")
+    night=0; md.rage=73.7; clock=clock+1; WTAGarou.RageTick(mp,md,clock)
+    close(md.rage,73.75,"noon: drift stops at 73.75 (70 + 15 x 0.25) without overshoot")
     mp.outside=false; md.rage=75; clock=clock+1; WTAGarou.RageTick(mp,md,clock)
     close(md.rage,75-1.5*R,"indoors: drift goes DOWN toward chosen 70")
     check(WTAGarou.RageSyncArgs(md).moonExposure==0,"wire explicitly clears moon exposure")
@@ -1480,5 +1480,54 @@ do
     close(md.rage,75-1.5*R,"roofed outdoor porch: drift targets chosen baseline")
     check(WTAGarou.RageSyncArgs(md).moonExposure==0,"porch clears exposure in server packet")
     getClimateMoon=nil; getClimateManager=nil
+end
+-- ------------------------------------------- 0.5.2: humans stay human ----
+-- Oct/Nov hosted playtest: a human player's clothes fell off while walking.
+-- The server ticked her hidden Rage to 100, forced Crinos and stripped her.
+do
+    local realTrait = WTAGarou.HasGarouTrait
+    WTAGarou.HasGarouTrait = function(p) return p and p.garou == true end
+    local hp = newPlayer(); hp.garou = false
+    hp.moodles = { PANIC = 4, STRESS = 4, PAIN = 4, INJURED = 4, ANGRY = 4 }
+    local hd = WTAGarou.GetData(hp)
+    hd.form = "Crinos"; hd.rage = 99; hd.isFrenzied = true
+    hd.crinosCountdownAt = clock + 1; hd.pendingForm = "Crinos"; hd.pendingForced = true
+    hp.md.WTAGarou_MeleeMult = 2.0; hp.md.WTAGarou_UnarmedBonus = 6.0; hp.md.WTAGarou_MeleeBonus = 1.0
+    sent = {}
+    for _ = 1, 40 do clock = clock + 1; fireUpdate(hp) end
+    check(hd.form == "Homid", "0.5.2: leftover Crinos on a human is reset to Homid")
+    check(hd.rage == 0 and hd.isFrenzied == false, "0.5.2: human Rage and frenzy are cleared")
+    check(hd.pendingForm == nil and hd.crinosCountdownAt == nil, "0.5.2: human pending shift and countdown cleared")
+    check(hp.md.WTAGarou_MeleeMult == nil and hp.md.WTAGarou_UnarmedBonus == nil and hp.md.WTAGarou_MeleeBonus == 0,
+        "0.5.2: human melee multiplier and claw bonus back to Homid")
+    check(not sentCmds():find("TransformAccepted") and not sentCmds():find("TransformForced"),
+        "0.5.2: a human is never sent a forced shift: " .. sentCmds())
+    WTAGarou.AddRage(hp, 50)
+    check(hd.rage == 0, "0.5.2: AddRage does nothing for a human")
+    sent = {}
+    for _, cmd in ipairs({ "TransformRequest", "TransformConfirm", "CrinosRoarRequest", "CrinosDoorCharge",
+            "HowlRequest", "HowlTick", "ResistRequest", "WitnessTick" }) do
+        WTAGarou.HandleClientCommand("WTAGarou", cmd, hp, { form = "Crinos", target = "Crinos", forced = true })
+    end
+    check(hd.form == "Homid" and hd.rage == 0 and hd.howling ~= true,
+        "0.5.2: Garou commands from a human change nothing")
+    check(lastOf("TransformDenied") and lastOf("TransformDenied").reason == "not_a_garou",
+        "0.5.2: a human transform request is denied as not_a_garou")
+    local cleanups = 0
+    local oldPrint = print
+    print = function(msg) if tostring(msg):find("%[Human%]") then cleanups = cleanups + 1 end end
+    for _ = 1, 10 do clock = clock + 1; fireUpdate(hp) end
+    print = oldPrint
+    check(cleanups == 0, "0.5.2: the human cleanup runs once, not every tick")
+    -- melee surplus: none for a human, still there for a werewolf
+    local oldInst = instanceof
+    instanceof = function(o, cls) return cls == "IsoPlayer" and o == hp end
+    local z = { h = 1.8 }
+    function z:getHealth() return self.h end
+    function z:setHealth(v) self.h = v end
+    for _, h in ipairs(Events.OnHitZombie.handlers) do h(z, hp, nil, nil) end
+    close(z.h, 1.8, "0.5.2: a human's punch gets no melee surplus")
+    instanceof = oldInst
+    WTAGarou.HasGarouTrait = realTrait
 end
 print("PASS: " .. checks .. " rage-engine / berserk-Crinos assertions.")

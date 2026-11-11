@@ -224,11 +224,12 @@ function WTAGarouTransformAction:perform()
     ISBaseTimedAction.perform(self)
 end
 
-function WTAGarouTransformAction:new(character, targetForm, seconds, previousForm)
+function WTAGarouTransformAction:new(character, targetForm, seconds, previousForm, shiftVisualToken)
     local o = ISBaseTimedAction.new(self, character)
     o.character = character
     o.targetForm = targetForm
     o.previousForm = previousForm or "Homid"
+    o.shiftVisualToken = shiftVisualToken
     o.maxTime = WTAGarou.SecondsToTicks(seconds or 5)
     -- Your chosen shift rule: only the standard Cancel Action (Escape /
     -- controller B) interrupts a transformation. Movement and aiming do not.
@@ -258,11 +259,11 @@ function WTAGarou.Channel.abort(player)
     end
 end
 
-function WTAGarou.Channel.startChannel(player, targetForm, seconds, previousForm)
+function WTAGarou.Channel.startChannel(player, targetForm, seconds, previousForm, shiftVisualToken)
     if not player then return end
     ISTimedActionQueue.clear(player)
     ISTimedActionQueue.add(
-        WTAGarouTransformAction:new(player, targetForm, seconds, previousForm)
+        WTAGarouTransformAction:new(player, targetForm, seconds, previousForm, shiftVisualToken)
     )
 end
 

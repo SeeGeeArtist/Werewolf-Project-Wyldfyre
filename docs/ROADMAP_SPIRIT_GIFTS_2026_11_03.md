@@ -28,7 +28,7 @@ the Resolve portion early into the current Resolve-only candidate.
 | Ragabash | 0 | 2 | 1 |
 | Theurge | 0 | 1 | 2 |
 | Philodox | 1 | 1 | 1 |
-| Galliard | 1 | 2 | 0 |
+| Galliard | 2 | 1 | 0 |
 | Ahroun | 2 | 0 | 1 |
 
 Each auspice starts with three total Garou skill levels. These are initial

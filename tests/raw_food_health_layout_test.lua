@@ -18,12 +18,16 @@ function food:isCooked() return self.cooked end
 function food:isRotten() return self.rotten end
 function food:isTainted() return self.tainted end
 function food:getPoisonPower() return self.power end
+function food:setbDangerousUncooked(v) self.dangerous = v end
+local fullTimer = 0
 local player = { garou = true, getStats = function() return stats end }
 local action = { character = player, item = food, percentage = 0.5 }
 local calls = 0
 local function consume(self, _, fraction)
     calls = calls + 1
+    -- Mirrors vanilla JustAteFood: dangerous raw food poisons and zeroes Full.
     stats.poison = stats.poison + 12
+    if self.item.dangerous and not self.item.cooked then fullTimer = 0 else fullTimer = fullTimer + 100 end
     stats.nutrition = stats.nutrition + (fraction or self.percentage)
     return true
 end
@@ -33,8 +37,10 @@ local R = WTAGarou.RawFood
 check(R.install() == false, "install once")
 check(ISEatFoodAction.complete(action) == true and stats.poison == 7, "preserve existing poison")
 check(calls == 1 and stats.nutrition == 0.5, "one native full meal")
+check(fullTimer == 100 and food.dangerous == true, "raw meat fills the Full timer; raw flag restored")
 ISEatFoodAction.eat(action, food, 0.25)
 check(calls == 2 and stats.poison == 7 and stats.nutrition == 0.75, "one native partial meal")
+check(fullTimer == 200 and food.dangerous == true, "partial raw meal also adds to Full")
 for _, key in ipairs({ "cooked", "rotten", "tainted" }) do
     food[key] = true; stats.poison = 7
     ISEatFoodAction.complete(action)
@@ -47,12 +53,15 @@ check(stats.poison == 19, "explicit poison retained")
 food.power = 0; food.dangerous = false; stats.poison = 7
 ISEatFoodAction.complete(action)
 check(stats.poison == 19, "non-dangerous food untouched")
-food.dangerous = true; player.garou = false; stats.poison = 7
+food.dangerous = true; player.garou = false; stats.poison = 7; fullTimer = 50
 ISEatFoodAction.complete(action)
-check(stats.poison == 19, "human unaffected")
+check(stats.poison == 19 and fullTimer == 0 and food.dangerous, "human unaffected: poisoned, Full reset")
 player.garou = true; client = true; stats.poison = 7
 ISEatFoodAction.complete(action)
-check(stats.poison == 19, "client cannot restore body stats")
+check(stats.poison == 19 and food.dangerous, "client cannot restore body stats or touch the flag")
+client = false
+local savedErr = R.before(action); check(food.dangerous == false, "flag cleared during meal")
+R.after(savedErr); check(food.dangerous == true, "flag restored even when nothing ran")
 client = false; stats.poison = 7
 local saved = R.before(action); stats.poison = 3; R.after(saved)
 check(stats.poison == 3, "legitimate reduction retained")

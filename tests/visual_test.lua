@@ -81,7 +81,7 @@ check(crowdCalls == crowdCount, "crowd-charge rule pushed once per form change")
 -- 0.5.0: Resolve gates and grows the charge; a level change re-pushes the rule.
 p.data.WTAGarou.form = "Crinos"
 resolveLevel = 0; refresh(p, false)
-check(crowd[p][1] == 0 and crowd[p][2] == 3.0, "Resolve 0: Crinos crowd charge locked (limit 0)")
+check(crowd[p][1] == 3 and crowd[p][2] == 3.0, "0.5.2 Resolve 0: Crinos crowd charge already knocks down 3")
 resolveLevel = 5; refresh(p, false)
 check(crowd[p][1] == 4, "Resolve 5: four knockdowns per sprint")
 resolveLevel = 8; refresh(p, false)

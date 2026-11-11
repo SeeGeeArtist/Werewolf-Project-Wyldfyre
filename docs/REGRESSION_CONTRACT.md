@@ -1,5 +1,71 @@
 # Shifting and HUD regression contract
 
+## Human players: 0.5.2
+
+- Reported November 9 (hosted game): a human player's clothes fell off while
+  walking. Cause: the server Rage sweep had no trait check, so a human's
+  hidden Rage forced Crinos and the server strip ran on her.
+- Rule: no Rage, countdown, forced shift, strip, melee surplus, damage
+  refund, regeneration or werewolf command for a player without the
+  Werewolf trait. Debug* admin commands stay allowed. WTAGarou.AddRage is a
+  no-op for humans. Leftover state is reset once (WTAGarou.ClearHumanState).
+- Covered by rage_engine_test (human block) and witness_server_test. Not yet
+  playtested.
+- User request (same day): FormData.meleeDamage and unarmedDamageBonus are
+  replaced by a flat FormData.meleeBonus per landed melee hit, armed or
+  unarmed: Homid 0, Glabro 0.5, Crinos 1.0, Hispo 0.75, Lupus 0.15 (the old
+  armed surplus, mult - 1). Firearms get nothing. modData key
+  WTAGarou_MeleeBonus; the old MeleeMult/UnarmedBonus keys are cleared.
+  Covered by door_charge_test. Not yet playtested.
+- User request November 10: Resolve.UNLOCK = CROWD_CHARGE 0, ROAR_STAGGER 1,
+  DOOR_CHARGE 2 (was 1/2/3). CROWD_CHARGE_LIMIT {0=3, 5=4, 8=5} and
+  ROAR_FORCE {1=1.0, 6=1.5, 10=2.0}. Level 3 has passives only. IG_UI.json
+  regenerated from Resolve.text. Covered by resolve_test, door_charge_test,
+  crinos_burst_test, visual_test, wyrm_tutorial_test. Not yet playtested.
+
+## 0.5.1 follow-up: November 8 hosted report
+
+- User-confirmed: the multiplayer shift-scale sync works for observers
+  (slightly jittery, accepted as fine).
+- User request: daytime moon pull at noon is a quarter of the night pull
+  (MoonLight.DAY_SHARE 0.5 -> 0.25). Night values are unchanged.
+- User-confirmed November 8: raw meat now produces the Full moodle, which
+  disappears after about one or two minutes in the reported test. Accepted
+  by the user; preserve this behavior and do not retune the timer.
+  WTAGarouRawFood now clears the food's raw-danger flag
+  only while the server eats an eligible meal, then restores it.
+- Original cause: raw meat never showed the Full moodle. This is the
+  vanilla 42.21 rule: BodyDamage.JustAteFood sets HealthFromFoodTimer to 0
+  for dangerous uncooked food, and the Full moodle reads that timer. Hunger
+  itself still drops. Before this fix, the raw-food immunity only restored poison.
+
+## Multiplayer shift-size hotfix: 0.5.1
+
+- Target: other players see gradual shift scaling and cancellation recovery.
+- Confirmed baseline: the user likes the local 75% effect and kept it. Fresh
+  raw meat sickness is fixed in their multiplayer playtest. Do not change
+  those systems or infer that the new observer effect has been playtested.
+- Must remain untouched: shift approval, timings, costs, XP, abilities,
+  cancellation rules, local interpolation, model/gear selection, Java JAR,
+  signature, and the user's Steam stage and page text.
+- The server issues a fresh cosmetic token for each accepted reservation.
+  Clients send normalized timed-action progress, at most five times per
+  second, plus one cancellation hint. The server validates the sending
+  player, token, current reservation, form, trait, lifespan and progress.
+  Client-supplied form, model, scale and owner fields are not used.
+- Visual snapshots carry server-computed scale samples. Active updates are
+  batched at five snapshots per second; observers interpolate every frame.
+  Current samples cover late joins; sequence and token checks prevent old
+  packets from replaying another shift. Local players are excluded.
+- Cancels return over one second. Confirmed/forced forms restore exact normal
+  scale. Death, trait loss, disconnect, ID reuse and stale updates clear the
+  cosmetic effect. No observer path edits gameplay modData or actions.
+- Static checks: sender, server, snapshot and renderer tests cover these
+  paths, alongside the existing local effect and mechanics tests.
+- Still needed: two updated clients on one updated hosted server, with one
+  player watching the other complete a shift, cancel a shift, and shift
+  back. Dedicated-server appearance remains untested.
+
 ## Shift-size effect: November 8
 
 - User-confirmed November 8: the shift-size effect looks right at the 0.75
@@ -132,7 +198,7 @@ Write-up: `docs/RESOLVE_0500.md` (the full channel formula lives there).
   / `PAIR_BERZERKER` are additive per-pair seconds, empty by default;
   `CENTER_ON_BASELINE` is false (plateau stays on 50). Moonlight exposure =
   access x moon (getMoonFloat / 0.7) x sky x (1 - cloud) x (1 - fog), sky =
-  DAY_SHARE (0.5) + 0.5 x night strength, so the moon pulls by day too; a
+  DAY_SHARE (0.25 since 0.5.1; was 0.5) + 0.75 x night strength, so the moon pulls by day too; a
   missing climate API reads 0. Everything is snapshotted at TransformRequest.
 - Resolve skill (`media/perks.txt`, `WTAGarou_Resolve` under a new
   `WTAGarou_Garou` category; names in UI.json). XP (server-validated,
